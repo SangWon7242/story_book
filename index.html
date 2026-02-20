@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>비프의 푸른 바다 모험</title>
+    <meta
+      name="description"
+      content="화성에서 온 로봇 비프의 신비로운 지구 바다 탐험 동화. 사이버펑크 스타일의 인터랙티브 동화책."
+    />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css" />
+
+    <!-- StPageFlip Library -->
+    <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Top Bar -->
+      <div class="top-bar">
+        <div class="top-bar-title">
+          <h1>📖 비프의 푸른 바다 모험</h1>
+          <span class="subtitle"
+            >화성에서 온 로봇, 비프의 신비로운 지구 탐험기</span
+          >
+        </div>
+        <div class="top-bar-meta">
+          <div class="meta-item">
+            <span class="meta-label">테마</span>
+            <span class="meta-value">새로운 만남과 우정</span>
+          </div>
+          <div class="meta-divider"></div>
+          <div class="meta-item">
+            <span class="meta-label">주인공</span>
+            <span class="meta-value">로봇 비프 &amp; 집게</span>
+          </div>
+          <div class="meta-divider"></div>
+          <div class="meta-item">
+            <span class="meta-label">스타일</span>
+            <span class="meta-value">사이버펑크 동화</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Book Area -->
+      <div class="book-area">
+        <div class="book-stage">
+          <div id="book" class="book-container">
+            <!-- ===== Front Cover ===== -->
+            <div class="page page-cover" data-density="hard">
+              <div class="cover-title">비프의 푸른 바다 모험</div>
+              <div class="cover-decoration"></div>
+              <div class="cover-subtitle">
+                화성에서 온 로봇, 비프의 신비로운 지구 탐험기
+              </div>
+            </div>
+
+            <!-- ===== Story 1 - Image (Left) ===== -->
+            <div class="page page-illustration">
+              <div class="illustration-wrap">
+                <img
+                  src="images/1.png"
+                  alt="비프가 푸른 지구의 바다에 도착한 장면"
+                />
+              </div>
+            </div>
+
+            <!-- ===== Story 1 - Text (Right) ===== -->
+            <div class="page page-story">
+              <div class="story-wrap">
+                <div class="story-chapter">Chapter 1</div>
+                <h3 class="story-title">안녕, 푸른 지구야!</h3>
+                <div class="story-divider"></div>
+                <p class="story-body">
+                  <span class="sentence" data-sentence="1"
+                    >먼지 폴폴 날리는 화성에서 온 구식 로봇 비프가 드디어 푸른
+                    지구에 도착했어요!</span
+                  >
+                  <span class="sentence" data-sentence="2"
+                    >비프의 가슴에서는 무지갯빛 LED 하트가 치익치익 소리를 내며
+                    뜨겁게 빛나고 있었죠.</span
+                  >
+                  <span class="sentence" data-sentence="3"
+                    >와아, 처음 마주한 바다는 도시의 네온사인보다 더 눈부시게
+                    일렁였답니다.</span
+                  >
+                  <span class="sentence" data-sentence="4"
+                    >비프는 철컥철컥 무거운 발소리를 내며 신기한 듯 모래사장으로
+                    다가갔어요.</span
+                  >
+                </p>
+                <div class="story-page-number">1 / 5</div>
+              </div>
+            </div>
+
+            <!-- ===== Story 2 - Image (Left) ===== -->
+            <div class="page page-illustration">
+              <div class="illustration-wrap">
+                <img src="images/2.png" alt="비프와 집게가 처음 만나는 장면" />
+              </div>
+            </div>
+
+            <!-- ===== Story 2 - Text (Right) ===== -->
+            <div class="page page-story">
+              <div class="story-wrap">
+                <div class="story-chapter">Chapter 2</div>
+                <h3 class="story-title">새로운 친구, 집게</h3>
+                <div class="story-divider"></div>
+                <p class="story-body">
+                  <span class="sentence" data-sentence="1"
+                    >그때 모래 사이로 반짝이는 은색 게 로봇이 쪼르르 나타나
+                    비프에게 인사를 건넸어요.</span
+                  >
+                  <span class="sentence" data-sentence="2"
+                    >"안녕? 난 지구 바다를 지키는 집게야!"</span
+                  >
+                  <span class="sentence" data-sentence="3"
+                    >비프는 깜짝 놀라 가슴의 하트를 깜빡거렸지요.</span
+                  >
+                  <span class="sentence" data-sentence="4"
+                    >둘은 바다 위로 떠다니는 알록달록한 홀로그램 거품들을
+                    구경하며 금세 단짝 친구가 되었어요.</span
+                  >
+                  <span class="sentence" data-sentence="5"
+                    >비프의 차가운 금속 몸체 위로 시원한 바닷바람이 보들보들
+                    스쳐 지나갔답니다.</span
+                  >
+                </p>
+                <div class="story-page-number">2 / 5</div>
+              </div>
+            </div>
+
+            <!-- ===== Story 3 - Image (Left) ===== -->
+            <div class="page page-illustration">
+              <div class="illustration-wrap">
+                <img
+                  src="images/3.png"
+                  alt="바다의 파도가 비프를 감싸는 마법 같은 장면"
+                />
+              </div>
+            </div>
+
+            <!-- ===== Story 3 - Text (Right) ===== -->
+            <div class="page page-story">
+              <div class="story-wrap">
+                <div class="story-chapter">Chapter 3</div>
+                <h3 class="story-title">반짝반짝 바다의 마법</h3>
+                <div class="story-divider"></div>
+                <p class="story-body">
+                  <span class="sentence" data-sentence="1"
+                    >갑자기 거대한 파도가 쏴아아 몰려와 비프의 발등을
+                    덮쳤어요.</span
+                  >
+                  <span class="sentence" data-sentence="2"
+                    >"으앗, 몸에 물이 닿으면 고장 나면 어쩌지?"</span
+                  >
+                  <span class="sentence" data-sentence="3"
+                    >비프는 걱정했지만, 신기하게도 가슴 속 LED 하트는 이전보다
+                    훨씬 더 환하게 타올랐답니다.</span
+                  >
+                  <span class="sentence" data-sentence="4"
+                    >바닷물에 비친 비프의 모습은 마치 밤하늘을 수놓은 화려한
+                    전광판처럼 반짝반짝 빛이 났어요.</span
+                  >
+                  <span class="sentence" data-sentence="5"
+                    >비프는 처음 느껴보는 상쾌함에 윙윙 기분 좋게 노래를
+                    불렀죠.</span
+                  >
+                </p>
+                <div class="story-page-number">3 / 5</div>
+              </div>
+            </div>
+
+            <!-- ===== Story 4 - Image (Left) ===== -->
+            <div class="page page-illustration">
+              <div class="illustration-wrap">
+                <img
+                  src="images/4.png"
+                  alt="보라빛 노을 아래 비프와 집게가 함께하는 장면"
+                />
+              </div>
+            </div>
+
+            <!-- ===== Story 4 - Text (Right) ===== -->
+            <div class="page page-story">
+              <div class="story-wrap">
+                <div class="story-chapter">Chapter 4</div>
+                <h3 class="story-title">보랏빛 노을 아래서</h3>
+                <div class="story-divider"></div>
+                <p class="story-body">
+                  <span class="sentence" data-sentence="1"
+                    >어느덧 노을이 지자 바다는 신비로운 보라색 네온 빛으로
+                    물들었어요.</span
+                  >
+                  <span class="sentence" data-sentence="2"
+                    >비프는 친구와 나란히 앉아 철썩철썩 들려오는 파도 소리에
+                    귀를 기울였답니다.</span
+                  >
+                  <span class="sentence" data-sentence="3"
+                    >"지구의 바다는 정말 따뜻하고 아름다워!"</span
+                  >
+                  <span class="sentence" data-sentence="4"
+                    >비프는 이제 외롭지 않았어요.</span
+                  >
+                  <span class="sentence" data-sentence="5"
+                    >소중한 친구와 함께라면 이 넓고 푸른 바다를 어디든 쌩쌩 달릴
+                    수 있을 것만 같았거든요.</span
+                  >
+                </p>
+                <div class="story-page-number">4 / 5</div>
+              </div>
+            </div>
+
+            <!-- ===== Story 5 - Image (Left) ===== -->
+            <div class="page page-illustration">
+              <div class="illustration-wrap">
+                <img
+                  src="images/5.png"
+                  alt="밤바다 위를 떠가는 빛나는 배를 바라보는 비프와 소라게 친구"
+                />
+              </div>
+            </div>
+
+            <!-- ===== Story 5 - Text (Right) ===== -->
+            <div class="page page-story">
+              <div class="story-wrap">
+                <div class="story-chapter">Chapter 5</div>
+                <h3 class="story-title">꿈꾸는 별빛 항해</h3>
+                <div class="story-divider"></div>
+                <p class="story-body">
+                  <span class="sentence" data-sentence="1"
+                    >밤하늘에 별들이 쏟아질 듯 반짝이는 시간, 비프는 꼬물꼬물
+                    움직이는 작은 소라 친구를 발견했어요.</span
+                  >
+                  <span class="sentence" data-sentence="2"
+                    >저 멀리 바다 위에는 빛나는 배가 둥실둥실 떠가고
+                    있었죠.</span
+                  >
+                  <span class="sentence" data-sentence="3"
+                    >비프는 소라 친구에게 속삭였어요. "언젠가 나도 저 배를 타고
+                    더 넓은 세상으로 모험을 떠날 거야!"</span
+                  >
+                  <span class="sentence" data-sentence="4"
+                    >파도 소리는 자장가처럼 찰싹찰싹 비프의 꿈을
+                    응원해주었답니다.</span
+                  >
+                </p>
+                <div class="story-page-number">5 / 5</div>
+              </div>
+            </div>
+
+            <!-- ===== Back Cover ===== -->
+            <div class="page page-cover" data-density="hard">
+              <div class="cover-title">끝 ✨</div>
+              <div class="cover-decoration"></div>
+              <div class="cover-subtitle">Powered by AI Vibe Coding</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Navigation -->
+      <nav class="bottom-nav">
+        <button
+          id="btn-prev"
+          class="nav-btn nav-btn-prev"
+          aria-label="이전 페이지"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2.5"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15.75 19.5L8.25 12l7.5-7.5"
+            />
+          </svg>
+          이전
+        </button>
+        <span id="page-indicator" class="page-indicator">표지</span>
+        <button
+          id="btn-next"
+          class="nav-btn nav-btn-next"
+          aria-label="다음 페이지"
+        >
+          다음
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2.5"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M8.25 4.5l7.5 7.5-7.5 7.5"
+            />
+          </svg>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Audio Player (Fixed, above nav) -->
+    <div class="audio-player">
+      <div id="audio-panel" class="audio-panel">
+        <div class="audio-panel-title">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+            />
+          </svg>
+          구연동화 오디오
+        </div>
+        <div class="audio-controls">
+          <button
+            id="audio-play-btn"
+            class="audio-play-btn"
+            aria-label="재생/일시정지"
+          >
+            <svg
+              class="icon-play"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M8 5.14v14l11-7-11-7z" />
+            </svg>
+            <svg
+              class="icon-pause"
+              style="display: none"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+            </svg>
+          </button>
+          <div class="audio-progress-wrap">
+            <div id="audio-progress-bar" class="audio-progress-bar">
+              <div id="audio-progress-fill" class="audio-progress-fill"></div>
+            </div>
+            <div class="audio-time">
+              <span id="audio-current-time">0:00</span>
+              <span id="audio-duration">0:00</span>
+            </div>
+          </div>
+        </div>
+        <div class="audio-volume-wrap">
+          <button
+            id="audio-volume-btn"
+            class="audio-volume-btn"
+            aria-label="음량"
+          >
+            <svg
+              class="icon-vol-high"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path
+                d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"
+              />
+            </svg>
+            <svg
+              class="icon-vol-low"
+              style="display: none"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path
+                d="M18.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM5 9v6h4l5 5V4L9 9H5z"
+              />
+            </svg>
+            <svg
+              class="icon-vol-mute"
+              style="display: none"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path
+                d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"
+              />
+            </svg>
+          </button>
+          <input
+            type="range"
+            id="audio-volume"
+            class="audio-volume-slider"
+            min="0"
+            max="1"
+            step="0.01"
+            value="0.7"
+            aria-label="볼륨 조절"
+          />
+        </div>
+      </div>
+      <button
+        id="audio-toggle"
+        class="audio-toggle-btn"
+        aria-label="오디오 패널 열기"
+      >
+        <svg
+          class="icon-play"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
+          <path
+            d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+          />
+        </svg>
+        <svg
+          class="icon-pause"
+          style="display: none"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
+          <path
+            d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Audio Element -->
+    <audio id="story-audio" preload="metadata">
+      <source src="audio/story_audio.mp3" type="audio/mpeg" />
+    </audio>
+
+    <!-- Main Script -->
+    <script src="js/main.js"></script>
+  </body>
+</html>
