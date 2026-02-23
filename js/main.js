@@ -1,7 +1,7 @@
 /* ============================================
    비프의 푸른 바다 모험 - Main Application JS
-   Open-Book Layout (StPageFlip)
-   Left=Illustration, Right=Text
+   Open-Book Layout (양면 펼침)
+   Left=Illustration(캐릭터), Right=Text(동화)
    ============================================ */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -10,7 +10,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* ========================
-   Book (StPageFlip) Setup
+   Book (StPageFlip) 설정
+   양면 펼침 모드 (usePortrait: false)
    ======================== */
 function initBook() {
   const bookEl = document.getElementById("book");
@@ -22,20 +23,25 @@ function initBook() {
   const availW = stageRect.width;
   const availH = stageRect.height;
 
-  // 각 페이지는 3:4 비율
+  // 각 페이지(한 면)는 3:4 비율
   const pageRatio = 3 / 4;
-  let pageH = Math.floor(availH);
-  let pageW = Math.floor(pageH * pageRatio);
 
-  // 가로 모드: 두 페이지가 나란히 표시
-  if (pageW * 2 > availW) {
-    pageW = Math.floor(availW / 2);
+  // 양면 펼침: 전체 너비의 절반이 한 페이지의 너비
+  let pageW, pageH;
+
+  // 높이 기준으로 먼저 계산
+  pageH = Math.floor(availH * 0.98);
+  pageW = Math.floor(pageH * pageRatio);
+
+  // 두 페이지를 나란히 놓았을 때 가로 공간을 초과하면 가로 기준으로 재계산
+  if (pageW * 2 > availW * 0.98) {
+    pageW = Math.floor((availW * 0.98) / 2);
     pageH = Math.floor(pageW / pageRatio);
   }
 
-  // 최소 크기 보장
-  pageW = Math.max(pageW, 220);
-  pageH = Math.max(pageH, 300);
+  // 최소 크기 보장 (너무 작으면 읽기 어려움)
+  pageW = Math.max(pageW, 160);
+  pageH = Math.max(pageH, 220);
 
   const pageFlip = new St.PageFlip(bookEl, {
     width: pageW,
@@ -45,7 +51,8 @@ function initBook() {
     maxShadowOpacity: 0.5,
     mobileScrollSupport: false,
     flippingTime: 800,
-    usePortrait: true,
+    /* ★ 핵심: usePortrait를 false로 설정하여 항상 양면 펼침 */
+    usePortrait: false,
     startZIndex: 0,
     autoSize: false,
     drawShadow: true,
@@ -64,7 +71,8 @@ function initBook() {
 
   /**
    * 현재 페이지 인덱스를 기반으로 인디케이터 업데이트
-   * 구조: [Front Cover(0)] [Img1(1), Txt1(2)] [Img2(3), Txt2(4)] ... [Back Cover(11)]
+   * 양면 펼침 구조:
+   * [Front Cover(0)] [Img1(1)+Txt1(2)] [Img2(3)+Txt2(4)] ... [Back Cover(11)]
    */
   const updateIndicator = () => {
     const current = pageFlip.getCurrentPageIndex();
@@ -76,7 +84,7 @@ function initBook() {
       return;
     }
 
-    // 마지막 페이지 (뒷표지)
+    // 뒷표지
     if (current >= total - 1) {
       pageIndicator.textContent = "끝";
       return;
@@ -103,7 +111,7 @@ function initBook() {
 }
 
 /* ========================
-   Audio Player
+   오디오 플레이어
    ======================== */
 function initAudioPlayer() {
   const audio = document.getElementById("story-audio");
@@ -130,6 +138,7 @@ function initAudioPlayer() {
     panel.classList.toggle("open", isPanelOpen);
   });
 
+  // 외부 클릭 시 패널 닫기
   document.addEventListener("click", (e) => {
     if (!e.target.closest(".audio-player")) {
       isPanelOpen = false;
@@ -137,7 +146,7 @@ function initAudioPlayer() {
     }
   });
 
-  // 재생 / 일시정지
+  // 재생 / 일시정지 상태 업데이트
   const updatePlayState = () => {
     const playIcon = playBtn.querySelector(".icon-play");
     const pauseIcon = playBtn.querySelector(".icon-pause");
@@ -179,7 +188,7 @@ function initAudioPlayer() {
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  // 프로그레스
+  // 프로그레스 바 업데이트
   audio.addEventListener("timeupdate", () => {
     if (audio.duration) {
       progressFill.style.width =
@@ -192,13 +201,13 @@ function initAudioPlayer() {
     durationEl.textContent = formatTime(audio.duration);
   });
 
-  // 시크
+  // 시크 (프로그레스 바 클릭)
   progressBar.addEventListener("click", (e) => {
     const rect = progressBar.getBoundingClientRect();
     audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
   });
 
-  // 볼륨
+  // 볼륨 슬라이더
   volumeSlider.addEventListener("input", (e) => {
     const vol = parseFloat(e.target.value);
     audio.volume = vol;
@@ -207,6 +216,7 @@ function initAudioPlayer() {
     updateVolumeIcon(vol);
   });
 
+  // 음소거 토글
   volumeBtn.addEventListener("click", () => {
     if (isMuted) {
       audio.volume = previousVolume;
@@ -221,6 +231,7 @@ function initAudioPlayer() {
     updateVolumeIcon(audio.volume);
   });
 
+  // 볼륨 아이콘 업데이트
   const updateVolumeIcon = (vol) => {
     const hi = volumeBtn.querySelector(".icon-vol-high");
     const lo = volumeBtn.querySelector(".icon-vol-low");

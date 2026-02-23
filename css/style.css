@@ -1,13 +1,14 @@
 /* ============================================
    비프의 푸른 바다 모험 - Ebook Styles
-   Open-Book Layout: Left=Illustration, Right=Text
+   Open-Book Layout: 양면 펼침 (Left=Illustration, Right=Text)
+   풀페이지 구성 + 반응형 미디어 쿼리
    ============================================ */
 
-/* === Fonts === */
+/* === 폰트 로드 === */
 @import url("https://fonts.googleapis.com/earlyaccess/nanumgothic.css");
 @import url("https://fonts.googleapis.com/css2?family=Jua&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap");
 
-/* === CSS Variables === */
+/* === CSS 변수 (디자인 토큰) === */
 :root {
   --paper-cream: #fdf8ec;
   --paper-warm: #faf5e4;
@@ -18,10 +19,10 @@
   --bg-card: #232340;
   --font-child: "Jua", "Nanum Gothic", sans-serif;
   --font-title: "Playfair Display", serif;
-  --touch-min: 60px;
+  --touch-min: 54px;
 }
 
-/* === Reset === */
+/* === 초기화 === */
 *,
 *::before,
 *::after {
@@ -45,7 +46,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* === Full-Screen App === */
+/* === 풀스크린 앱 컨테이너 === */
 .app-container {
   width: 100vw;
   height: 100vh;
@@ -56,19 +57,21 @@ body {
   position: relative;
 }
 
-/* === Top Bar === */
+/* ============================================
+   상단 바 (슬림 디자인)
+   ============================================ */
 .top-bar {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 24px;
-  background: rgba(0, 0, 0, 0.25);
+  padding: 6px 24px;
+  background: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(197, 179, 88, 0.15);
   z-index: 50;
-  min-height: 46px;
+  min-height: 42px;
 }
 
 .top-bar-title {
@@ -79,22 +82,22 @@ body {
 
 .top-bar-title h1 {
   font-family: var(--font-title);
-  font-size: clamp(1rem, 2vw, 1.4rem);
+  font-size: clamp(0.9rem, 1.8vw, 1.3rem);
   font-weight: 700;
   color: var(--antique-gold);
   white-space: nowrap;
 }
 
 .top-bar-title .subtitle {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
   display: none;
 }
 
 .top-bar-meta {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
 }
 
 .meta-item {
@@ -103,7 +106,7 @@ body {
 
 .meta-label {
   display: block;
-  font-size: 0.55rem;
+  font-size: 0.5rem;
   text-transform: uppercase;
   letter-spacing: 2px;
   color: var(--antique-gold);
@@ -112,18 +115,20 @@ body {
 }
 
 .meta-value {
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.65);
   margin-top: 1px;
 }
 
 .meta-divider {
   width: 1px;
-  height: 22px;
-  background: rgba(255, 255, 255, 0.12);
+  height: 18px;
+  background: rgba(255, 255, 255, 0.1);
 }
 
-/* === Book Area === */
+/* ============================================
+   책 영역 (풀페이지, 남은 공간 최대 활용)
+   ============================================ */
 .book-area {
   flex: 1;
   display: flex;
@@ -132,6 +137,7 @@ body {
   overflow: hidden !important;
   position: relative;
   min-height: 0;
+  padding: 8px;
 }
 
 .book-stage {
@@ -157,14 +163,17 @@ body {
   display: block;
 }
 
-/* === Base Page === */
+/* ============================================
+   기본 페이지 스타일
+   ============================================ */
 .page {
   background-color: #fff;
   overflow: hidden !important;
 }
 
 /* ============================================
-   Cover Pages
+   표지 페이지 (Front / Back Cover)
+   텍스트가 페이지 밖으로 넘어가지 않도록 제한
    ============================================ */
 .page-cover {
   background: linear-gradient(145deg, #2f4f4f 0%, #1a3333 50%, #0d1f1f 100%);
@@ -172,13 +181,17 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 32px;
+  padding: 16px 12px;
   text-align: center;
   color: #fff;
   position: relative;
-  overflow: hidden;
+  overflow: hidden !important;
+  /* 내부 콘텐츠가 절대 넘치지 않도록 */
+  max-width: 100%;
+  max-height: 100%;
 }
 
+/* 표지 장식 오버레이 */
 .page-cover::before {
   content: "";
   position: absolute;
@@ -199,26 +212,32 @@ body {
 
 .page-cover .cover-title {
   font-family: var(--font-title);
-  font-size: clamp(1.6rem, 3.5vw, 2.8rem);
+  font-size: clamp(1rem, 2.5vw, 2.2rem);
   font-weight: 700;
   color: var(--antique-gold);
   text-shadow: 0 2px 16px rgba(197, 179, 88, 0.35);
   z-index: 1;
-  line-height: 1.4;
+  line-height: 1.3;
+  max-width: 90%;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .page-cover .cover-subtitle {
-  margin-top: 16px;
+  margin-top: 8px;
   font-family: var(--font-child);
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.55);
+  font-size: clamp(0.5rem, 1vw, 0.75rem);
+  color: rgba(255, 255, 255, 0.5);
   z-index: 1;
   letter-spacing: 1px;
+  max-width: 90%;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .page-cover .cover-decoration {
-  margin: 20px auto;
-  width: 60px;
+  margin: 10px auto;
+  width: 50px;
   height: 2px;
   background: linear-gradient(
     90deg,
@@ -227,10 +246,11 @@ body {
     transparent
   );
   z-index: 1;
+  flex-shrink: 0;
 }
 
 /* ============================================
-   Illustration Page (왼쪽 - 이미지 전체)
+   일러스트레이션 페이지 (왼쪽 - 캐릭터 이미지)
    ============================================ */
 .page-illustration {
   background: #1a1a2e;
@@ -252,12 +272,12 @@ body {
   overflow: hidden;
 }
 
-/* 이미지 배경 장식 프레임 */
+/* 이미지 장식 프레임 */
 .illustration-wrap::before {
   content: "";
   position: absolute;
-  inset: 8px;
-  border: 1px solid rgba(197, 179, 88, 0.2);
+  inset: 6px;
+  border: 1px solid rgba(197, 179, 88, 0.18);
   border-radius: 4px;
   pointer-events: none;
   z-index: 2;
@@ -266,15 +286,15 @@ body {
 .illustration-wrap img {
   width: 100%;
   height: 100%;
-  object-fit: contain; /* 이미지 전체가 보이도록 (깨지지 않게) */
+  object-fit: contain;
   display: block;
-  padding: 12px;
+  padding: 10px;
   position: relative;
   z-index: 1;
 }
 
 /* ============================================
-   Story Page (오른쪽 - 텍스트)
+   스토리 텍스트 페이지 (오른쪽 - 동화 텍스트)
    ============================================ */
 .page-story {
   background: var(--paper-cream);
@@ -285,7 +305,7 @@ body {
   overflow: hidden;
 }
 
-/* 종이 질감 효과 */
+/* 종이 질감 줄무늬 효과 */
 .page-story::before {
   content: "";
   position: absolute;
@@ -308,7 +328,7 @@ body {
   left: 0;
   top: 0;
   bottom: 0;
-  width: 30px;
+  width: 24px;
   background: linear-gradient(90deg, rgba(0, 0, 0, 0.08), transparent);
   pointer-events: none;
   z-index: 1;
@@ -320,35 +340,35 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 32px 28px 24px 40px;
+  padding: 24px 20px 18px 32px;
   position: relative;
   z-index: 1;
 }
 
-/* Chapter 표시 */
+/* 챕터 레이블 */
 .story-chapter {
   font-family: var(--font-title);
-  font-size: clamp(0.6rem, 1vw, 0.75rem);
+  font-size: clamp(0.55rem, 0.9vw, 0.7rem);
   text-transform: uppercase;
-  letter-spacing: 4px;
+  letter-spacing: 3px;
   color: var(--antique-gold);
   opacity: 0.7;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 /* 스토리 제목 */
 .story-title {
   font-family: var(--font-child);
-  font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+  font-size: clamp(1rem, 2.2vw, 1.6rem);
   font-weight: 700;
   color: var(--dark-slate);
   line-height: 1.3;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
-/* 제목-본문 사이 구분선 */
+/* 제목-본문 구분선 */
 .story-divider {
-  width: 40px;
+  width: 36px;
   height: 3px;
   background: linear-gradient(
     90deg,
@@ -356,21 +376,21 @@ body {
     rgba(197, 179, 88, 0.3)
   );
   border-radius: 2px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
-/* 본문 텍스트 - 큰 글씨, 가독성 최우선 */
+/* 본문 텍스트 */
 .story-body {
   font-family: var(--font-child);
-  font-size: clamp(0.9rem, 1.8vw, 1.15rem);
-  line-height: 2;
+  font-size: clamp(0.8rem, 1.5vw, 1.1rem);
+  line-height: 1.9;
   color: #3a3a3a;
   word-break: keep-all;
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
 }
 
 /* TTS 하이라이팅용 문장 스타일 */
@@ -381,7 +401,7 @@ body {
     color 0.3s ease;
   border-radius: 4px;
   padding: 2px 4px;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
 .sentence.active {
@@ -394,16 +414,16 @@ body {
 .story-page-number {
   text-align: right;
   font-family: var(--font-title);
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   color: var(--sage-green);
   letter-spacing: 3px;
   margin-top: auto;
-  padding-top: 8px;
+  padding-top: 6px;
   border-top: 1px solid rgba(178, 172, 136, 0.2);
 }
 
 /* ============================================
-   Bottom Navigation (Child-Friendly)
+   하단 네비게이션 (어린이 친화적)
    ============================================ */
 .bottom-nav {
   flex-shrink: 0;
@@ -411,8 +431,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  padding: 10px 20px 14px;
-  background: rgba(0, 0, 0, 0.2);
+  padding: 8px 20px 10px;
+  background: rgba(0, 0, 0, 0.25);
   backdrop-filter: blur(8px);
   z-index: 50;
 }
@@ -421,15 +441,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   min-width: 80px;
   min-height: var(--touch-min);
-  padding: 0 22px;
+  padding: 0 20px;
   border: none;
   border-radius: 30px;
   cursor: pointer;
   font-family: var(--font-child);
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   outline: none;
@@ -465,14 +485,14 @@ body {
 }
 
 .nav-btn svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
 }
 
 .page-indicator {
   font-family: var(--font-child);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.7);
   font-weight: 700;
   min-width: 80px;
@@ -481,11 +501,11 @@ body {
 }
 
 /* ============================================
-   Audio Player (Fixed Bottom-Right)
+   오디오 플레이어 (Fixed, 우하단)
    ============================================ */
 .audio-player {
   position: fixed;
-  bottom: 76px;
+  bottom: 68px;
   right: 16px;
   z-index: 1000;
   display: flex;
@@ -495,8 +515,8 @@ body {
 }
 
 .audio-toggle-btn {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   border: 2px solid rgba(197, 179, 88, 0.4);
   background: linear-gradient(145deg, var(--dark-slate), #1a3333);
@@ -522,20 +542,20 @@ body {
 }
 
 .audio-toggle-btn svg {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
 }
 
 .audio-panel {
   background: linear-gradient(145deg, #1e3a3a, #15292d);
-  border-radius: 16px;
-  padding: 14px 18px;
-  width: 280px;
+  border-radius: 14px;
+  padding: 12px 16px;
+  width: 270px;
   border: 1px solid rgba(197, 179, 88, 0.15);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
   display: none;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   animation: slideUp 0.25s ease-out;
 }
 
@@ -545,7 +565,7 @@ body {
 
 .audio-panel-title {
   font-family: var(--font-child);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--antique-gold);
   font-weight: 700;
   display: flex;
@@ -554,19 +574,19 @@ body {
 }
 
 .audio-panel-title svg {
-  width: 15px;
-  height: 15px;
+  width: 14px;
+  height: 14px;
 }
 
 .audio-controls {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .audio-play-btn {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: 1.5px solid var(--antique-gold);
   background: transparent;
@@ -586,8 +606,8 @@ body {
 }
 
 .audio-play-btn svg {
-  width: 15px;
-  height: 15px;
+  width: 14px;
+  height: 14px;
 }
 
 .audio-progress-wrap {
@@ -617,7 +637,7 @@ body {
 .audio-time {
   display: flex;
   justify-content: space-between;
-  font-size: 0.58rem;
+  font-size: 0.55rem;
   color: rgba(255, 255, 255, 0.4);
 }
 
@@ -644,14 +664,14 @@ body {
 }
 
 .audio-volume-btn svg {
-  width: 15px;
-  height: 15px;
+  width: 14px;
+  height: 14px;
 }
 
 .audio-volume-slider {
   -webkit-appearance: none;
   appearance: none;
-  width: 72px;
+  width: 68px;
   height: 3px;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 2px;
@@ -679,7 +699,7 @@ body {
 }
 
 /* ============================================
-   Animations
+   애니메이션
    ============================================ */
 @keyframes slideUp {
   from {
@@ -725,59 +745,46 @@ body {
 }
 
 /* ============================================
-   Responsive
+   반응형 미디어 쿼리
    ============================================ */
+
+/* === 대형 데스크톱 (1200px 이상) === */
 @media (min-width: 1200px) {
   .top-bar-title .subtitle {
     display: inline;
   }
-}
 
-@media (max-width: 768px) {
-  .top-bar {
-    padding: 6px 12px;
-    flex-direction: column;
-    gap: 4px;
-    min-height: 38px;
-  }
-
-  .top-bar-meta {
-    gap: 12px;
-  }
-
-  .bottom-nav {
-    gap: 10px;
-    padding: 8px 12px 10px;
-  }
-
-  .nav-btn {
-    min-width: 70px;
-    min-height: var(--touch-min);
-    padding: 0 16px;
-    font-size: 0.9rem;
-  }
-
-  .audio-player {
-    bottom: 68px;
-    right: 10px;
-  }
-
-  .audio-panel {
-    width: 250px;
-  }
-
-  .audio-toggle-btn {
-    width: 46px;
-    height: 46px;
+  .book-area {
+    padding: 12px 24px;
   }
 
   .story-wrap {
-    padding: 20px 16px 16px 24px;
+    padding: 32px 28px 24px 40px;
   }
 
   .story-body {
-    font-size: clamp(0.82rem, 1.5vw, 1rem);
-    line-height: 1.8;
+    font-size: clamp(0.95rem, 1.6vw, 1.2rem);
+    line-height: 2.1;
+  }
+}
+
+/* === 태블릿 가로 (769px ~ 1199px) === */
+@media (min-width: 769px) and (max-width: 1199px) {
+  .top-bar {
+    padding: 6px 16px;
+  }
+
+  .book-area {
+    padding: 6px 12px;
+  }
+
+  .story-wrap {
+    padding: 20px 18px 16px 28px;
+  }
+
+  .story-body {
+    font-size: clamp(0.85rem, 1.5vw, 1.05rem);
+    line-height: 1.9;
   }
 
   .illustration-wrap img {
@@ -785,43 +792,294 @@ body {
   }
 }
 
-@media (max-width: 480px) {
+/* === 태블릿 세로 ~ 모바일 가로 (481px ~ 768px) === */
+@media (max-width: 768px) {
+  .top-bar {
+    padding: 4px 10px;
+    min-height: 36px;
+  }
+
   .top-bar-title h1 {
-    font-size: 0.95rem;
+    font-size: 0.85rem;
+  }
+
+  .top-bar-meta {
+    gap: 8px;
+  }
+
+  .meta-label {
+    font-size: 0.45rem;
+  }
+
+  .meta-value {
+    font-size: 0.55rem;
   }
 
   .meta-divider {
-    height: 18px;
+    height: 14px;
+  }
+
+  .book-area {
+    padding: 4px;
+  }
+
+  .bottom-nav {
+    gap: 10px;
+    padding: 6px 10px 8px;
+  }
+
+  .nav-btn {
+    min-width: 70px;
+    min-height: 48px;
+    padding: 0 16px;
+    font-size: 0.85rem;
+  }
+
+  .audio-player {
+    bottom: 58px;
+    right: 8px;
+  }
+
+  .audio-toggle-btn {
+    width: 42px;
+    height: 42px;
+  }
+
+  .audio-panel {
+    width: 240px;
+    padding: 10px 12px;
+  }
+
+  .story-wrap {
+    padding: 14px 12px 10px 20px;
+  }
+
+  .story-chapter {
+    font-size: 0.5rem;
+    letter-spacing: 2px;
+    margin-bottom: 2px;
+  }
+
+  .story-title {
+    font-size: clamp(0.85rem, 2vw, 1.2rem);
+    margin-bottom: 4px;
+  }
+
+  .story-divider {
+    width: 28px;
+    height: 2px;
+    margin-bottom: 8px;
+  }
+
+  .story-body {
+    font-size: clamp(0.7rem, 1.3vw, 0.9rem);
+    line-height: 1.7;
+    gap: 1px;
+  }
+
+  .story-page-number {
+    font-size: 0.5rem;
+    padding-top: 4px;
+  }
+
+  .illustration-wrap img {
+    padding: 6px;
+  }
+
+  .illustration-wrap::before {
+    inset: 4px;
+  }
+}
+
+/* === 모바일 세로 (480px 이하) === */
+@media (max-width: 480px) {
+  .top-bar {
+    padding: 3px 8px;
+    min-height: 32px;
+  }
+
+  .top-bar-title h1 {
+    font-size: 0.75rem;
+  }
+
+  .top-bar-meta {
+    display: none;
+  }
+
+  .book-area {
+    padding: 2px;
+  }
+
+  .bottom-nav {
+    gap: 8px;
+    padding: 5px 8px 6px;
   }
 
   .nav-btn {
     min-width: 60px;
-    min-height: var(--touch-min);
-    padding: 0 14px;
-    font-size: 0.85rem;
-    border-radius: 30px;
+    min-height: 44px;
+    padding: 0 12px;
+    font-size: 0.78rem;
+    border-radius: 24px;
+  }
+
+  .page-indicator {
+    font-size: 0.78rem;
+    min-width: 60px;
+  }
+
+  .audio-player {
+    bottom: 52px;
+    right: 6px;
+  }
+
+  .audio-toggle-btn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .audio-toggle-btn svg {
+    width: 16px;
+    height: 16px;
   }
 
   .audio-panel {
-    width: 220px;
-    padding: 10px 14px;
+    width: 210px;
+    padding: 8px 10px;
   }
 
   .story-wrap {
-    padding: 14px 12px 12px 18px;
+    padding: 10px 8px 8px 14px;
+  }
+
+  .story-chapter {
+    font-size: 0.4rem;
+    letter-spacing: 1.5px;
+    margin-bottom: 1px;
   }
 
   .story-title {
-    font-size: 1rem;
+    font-size: clamp(0.7rem, 1.8vw, 1rem);
+    margin-bottom: 3px;
+  }
+
+  .story-divider {
+    width: 20px;
+    height: 2px;
+    margin-bottom: 6px;
   }
 
   .story-body {
-    font-size: 0.82rem;
-    line-height: 1.7;
+    font-size: clamp(0.6rem, 1.2vw, 0.78rem);
+    line-height: 1.55;
+    gap: 0;
+  }
+
+  .sentence {
+    padding: 1px 2px;
+    margin-bottom: 0;
+  }
+
+  .story-page-number {
+    font-size: 0.42rem;
+    padding-top: 3px;
+    letter-spacing: 2px;
+  }
+
+  .illustration-wrap img {
+    padding: 4px;
+  }
+
+  .illustration-wrap::before {
+    inset: 2px;
+  }
+
+  .page-cover .cover-title {
+    font-size: clamp(1rem, 2.5vw, 1.8rem);
+  }
+
+  .page-cover .cover-subtitle {
+    font-size: clamp(0.5rem, 1vw, 0.7rem);
+  }
+
+  .page-cover {
+    padding: 16px;
   }
 }
 
-/* Prevent scrollbar globally */
+/* === 초소형 모바일 (360px 이하) === */
+@media (max-width: 360px) {
+  .top-bar {
+    padding: 2px 6px;
+    min-height: 28px;
+  }
+
+  .top-bar-title h1 {
+    font-size: 0.65rem;
+  }
+
+  .bottom-nav {
+    padding: 4px 6px 5px;
+  }
+
+  .nav-btn {
+    min-width: 52px;
+    min-height: 40px;
+    padding: 0 10px;
+    font-size: 0.7rem;
+  }
+
+  .story-wrap {
+    padding: 6px 6px 6px 10px;
+  }
+
+  .story-body {
+    font-size: 0.55rem;
+    line-height: 1.45;
+  }
+
+  .story-title {
+    font-size: 0.7rem;
+  }
+
+  .story-chapter {
+    font-size: 0.35rem;
+  }
+}
+
+/* === 가로 모드 최적화 (높이 500px 이하) === */
+@media (max-height: 500px) {
+  .top-bar {
+    padding: 2px 12px;
+    min-height: 28px;
+  }
+
+  .top-bar-title h1 {
+    font-size: 0.75rem;
+  }
+
+  .top-bar-meta {
+    display: none;
+  }
+
+  .bottom-nav {
+    padding: 3px 10px 5px;
+  }
+
+  .nav-btn {
+    min-height: 36px;
+    padding: 0 14px;
+    font-size: 0.8rem;
+  }
+
+  .book-area {
+    padding: 2px 8px;
+  }
+}
+
+/* ============================================
+   글로벌 스크롤바 숨기기
+   ============================================ */
 * {
   scrollbar-width: none;
   -ms-overflow-style: none;
