@@ -1,19 +1,26 @@
 /* ============================================
    비프의 푸른 바다 모험 - Main Application JS
-   Open-Book Layout (양면 펼침)
-   Left=Illustration(캐릭터), Right=Text(동화)
+   데스크톱: StPageFlip 양면 펼침
+   태블릿/모바일: 풀스크린 카드 뷰 (이미지 상단 + 텍스트 하단)
    ============================================ */
 
+/* 모바일/태블릿 전환 기준 (px) */
+const MOBILE_BREAKPOINT = 768;
+
 document.addEventListener("DOMContentLoaded", () => {
-  initBook();
+  /* 화면 너비에 따라 데스크톱 모드 또는 모바일 모드 선택 */
+  if (window.innerWidth <= MOBILE_BREAKPOINT) {
+    initMobileBook();
+  } else {
+    initDesktopBook();
+  }
   initAudioPlayer();
 });
 
-/* ========================
-   Book (StPageFlip) 설정
-   양면 펼침 모드 (usePortrait: false)
-   ======================== */
-function initBook() {
+/* ============================================
+   데스크톱: StPageFlip 양면 펼침 모드
+   ============================================ */
+function initDesktopBook() {
   const bookEl = document.getElementById("book");
   const bookStage = document.querySelector(".book-stage");
   if (!bookEl || !bookStage) return;
@@ -25,21 +32,16 @@ function initBook() {
 
   // 각 페이지(한 면)는 3:4 비율
   const pageRatio = 3 / 4;
+  let pageH = Math.floor(availH * 0.98);
+  let pageW = Math.floor(pageH * pageRatio);
 
-  // 양면 펼침: 전체 너비의 절반이 한 페이지의 너비
-  let pageW, pageH;
-
-  // 높이 기준으로 먼저 계산
-  pageH = Math.floor(availH * 0.98);
-  pageW = Math.floor(pageH * pageRatio);
-
-  // 두 페이지를 나란히 놓았을 때 가로 공간을 초과하면 가로 기준으로 재계산
+  // 두 페이지를 나란히 놓았을 때 가로 넘침 방지
   if (pageW * 2 > availW * 0.98) {
     pageW = Math.floor((availW * 0.98) / 2);
     pageH = Math.floor(pageW / pageRatio);
   }
 
-  // 최소 크기 보장 (너무 작으면 읽기 어려움)
+  // 최소 크기 보장
   pageW = Math.max(pageW, 160);
   pageH = Math.max(pageH, 220);
 
@@ -51,7 +53,6 @@ function initBook() {
     maxShadowOpacity: 0.5,
     mobileScrollSupport: false,
     flippingTime: 800,
-    /* ★ 핵심: usePortrait를 false로 설정하여 항상 양면 펼침 */
     usePortrait: false,
     startZIndex: 0,
     autoSize: false,
@@ -61,46 +62,32 @@ function initBook() {
   const pages = document.querySelectorAll(".page");
   pageFlip.loadFromHTML(pages);
 
-  // 네비게이션 버튼
+  // 네비게이션
   const prevBtn = document.getElementById("btn-prev");
   const nextBtn = document.getElementById("btn-next");
   const pageIndicator = document.getElementById("page-indicator");
-
-  // 총 스토리 수 (커버 제외, 이미지+텍스트 페이지 쌍의 수)
   const TOTAL_STORIES = 5;
 
-  /**
-   * 현재 페이지 인덱스를 기반으로 인디케이터 업데이트
-   * 양면 펼침 구조:
-   * [Front Cover(0)] [Img1(1)+Txt1(2)] [Img2(3)+Txt2(4)] ... [Back Cover(11)]
-   */
   const updateIndicator = () => {
     const current = pageFlip.getCurrentPageIndex();
     const total = pageFlip.getPageCount();
-
-    // 표지 페이지
     if (current === 0) {
       pageIndicator.textContent = "표지";
       return;
     }
-
-    // 뒷표지
     if (current >= total - 1) {
       pageIndicator.textContent = "끝";
       return;
     }
-
-    // 스토리 번호 계산: 페이지 1-2 → 스토리1, 3-4 → 스토리2, ...
     const storyNum = Math.ceil(current / 2);
     pageIndicator.textContent = `${storyNum} / ${TOTAL_STORIES}`;
   };
 
   prevBtn.addEventListener("click", () => pageFlip.flipPrev());
   nextBtn.addEventListener("click", () => pageFlip.flipNext());
-
   pageFlip.on("flip", updateIndicator);
 
-  // 키보드 내비게이션 (좌우 화살표)
+  // 키보드 내비게이션
   document.addEventListener("keydown", (e) => {
     if (e.key === "ArrowLeft") pageFlip.flipPrev();
     else if (e.key === "ArrowRight") pageFlip.flipNext();
@@ -110,9 +97,171 @@ function initBook() {
   window._pageFlip = pageFlip;
 }
 
-/* ========================
-   오디오 플레이어
-   ======================== */
+/* ============================================
+   태블릿/모바일: 풀스크린 카드 뷰
+   이미지 상단, 동화 텍스트 하단 레이아웃
+   ============================================ */
+function initMobileBook() {
+  const bookEl = document.getElementById("book");
+  const bookStage = document.querySelector(".book-stage");
+  if (!bookEl || !bookStage) return;
+
+  // 기존 페이지 요소들을 수집
+  const allPages = Array.from(bookEl.querySelectorAll(".page"));
+  const covers = allPages.filter((p) => p.classList.contains("page-cover"));
+  const illustrations = allPages.filter((p) =>
+    p.classList.contains("page-illustration"),
+  );
+  const stories = allPages.filter((p) => p.classList.contains("page-story"));
+
+  // 모바일 슬라이드를 담을 컨테이너 생성
+  const mobileContainer = document.createElement("div");
+  mobileContainer.className = "mobile-book";
+
+  const slides = [];
+
+  /* --- 슬라이드 0: 앞표지 --- */
+  const frontCover = document.createElement("div");
+  frontCover.className = "mobile-page mobile-cover";
+  frontCover.innerHTML = covers[0].innerHTML;
+  slides.push(frontCover);
+
+  /* --- 슬라이드 1~5: 스토리 (이미지 상단 + 텍스트 하단) --- */
+  for (let i = 0; i < illustrations.length; i++) {
+    const slide = document.createElement("div");
+    slide.className = "mobile-page mobile-story-card";
+
+    // 이미지 영역
+    const imgSection = document.createElement("div");
+    imgSection.className = "mobile-img-section";
+    const imgWrap = illustrations[i].querySelector(".illustration-wrap");
+    if (imgWrap) imgSection.innerHTML = imgWrap.innerHTML;
+
+    // 텍스트 영역
+    const textSection = document.createElement("div");
+    textSection.className = "mobile-text-section";
+    const storyWrap = stories[i].querySelector(".story-wrap");
+    if (storyWrap) textSection.innerHTML = storyWrap.innerHTML;
+
+    slide.appendChild(imgSection);
+    slide.appendChild(textSection);
+    slides.push(slide);
+  }
+
+  /* --- 마지막 슬라이드: 뒷표지 --- */
+  const backCover = document.createElement("div");
+  backCover.className = "mobile-page mobile-cover";
+  backCover.innerHTML = covers[1] ? covers[1].innerHTML : covers[0].innerHTML;
+  slides.push(backCover);
+
+  // 기존 book 컨테이너 내용을 비우고, 모바일 컨테이너로 교체
+  bookEl.style.display = "none";
+  slides.forEach((slide, idx) => {
+    slide.dataset.slideIndex = idx;
+    if (idx !== 0) slide.style.display = "none";
+    mobileContainer.appendChild(slide);
+  });
+  bookStage.appendChild(mobileContainer);
+
+  // 모바일 네비게이션 로직
+  let currentSlide = 0;
+  const totalSlides = slides.length;
+  const TOTAL_STORIES = illustrations.length;
+
+  const prevBtn = document.getElementById("btn-prev");
+  const nextBtn = document.getElementById("btn-next");
+  const pageIndicator = document.getElementById("page-indicator");
+
+  /* 현재 슬라이드 표시 + 부드러운 전환 애니메이션 */
+  function showSlide(index) {
+    slides.forEach((slide, i) => {
+      if (i === index) {
+        slide.style.display = "flex";
+        // 슬라이드 등장 애니메이션
+        slide.style.animation = "none";
+        slide.offsetHeight; // 리플로우 트리거
+        slide.style.animation = "mobileFadeIn 0.35s ease-out";
+      } else {
+        slide.style.display = "none";
+      }
+    });
+
+    // 인디케이터 업데이트
+    if (index === 0) {
+      pageIndicator.textContent = "표지";
+    } else if (index === totalSlides - 1) {
+      pageIndicator.textContent = "끝";
+    } else {
+      pageIndicator.textContent = `${index} / ${TOTAL_STORIES}`;
+    }
+  }
+
+  // 이전 / 다음 버튼
+  prevBtn.addEventListener("click", () => {
+    if (currentSlide > 0) {
+      currentSlide--;
+      showSlide(currentSlide);
+    }
+  });
+
+  nextBtn.addEventListener("click", () => {
+    if (currentSlide < totalSlides - 1) {
+      currentSlide++;
+      showSlide(currentSlide);
+    }
+  });
+
+  // 키보드 내비게이션
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft" && currentSlide > 0) {
+      currentSlide--;
+      showSlide(currentSlide);
+    } else if (e.key === "ArrowRight" && currentSlide < totalSlides - 1) {
+      currentSlide++;
+      showSlide(currentSlide);
+    }
+  });
+
+  /* --- 터치 스와이프 지원 (어린이 친화적) --- */
+  let touchStartX = 0;
+  let touchEndX = 0;
+  const SWIPE_THRESHOLD = 50; // 최소 스와이프 거리 (px)
+
+  mobileContainer.addEventListener(
+    "touchstart",
+    (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    },
+    { passive: true },
+  );
+
+  mobileContainer.addEventListener(
+    "touchend",
+    (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      const diff = touchStartX - touchEndX;
+
+      // 왼쪽 스와이프 → 다음 페이지
+      if (diff > SWIPE_THRESHOLD && currentSlide < totalSlides - 1) {
+        currentSlide++;
+        showSlide(currentSlide);
+      }
+      // 오른쪽 스와이프 → 이전 페이지
+      else if (diff < -SWIPE_THRESHOLD && currentSlide > 0) {
+        currentSlide--;
+        showSlide(currentSlide);
+      }
+    },
+    { passive: true },
+  );
+
+  // 초기 슬라이드 표시
+  showSlide(0);
+}
+
+/* ============================================
+   오디오 플레이어 (데스크톱/모바일 공통)
+   ============================================ */
 function initAudioPlayer() {
   const audio = document.getElementById("story-audio");
   if (!audio) return;
