@@ -1424,9 +1424,10 @@ body {
   background: linear-gradient(135deg, #a56eff 0%, #7c3aed 100%);
   color: #fff;
   box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
-  min-width: 48px;
-  padding: 0 12px;
-  font-size: 0;
+  min-width: 100px;
+  padding: 0 14px;
+  font-size: 0.85rem;
+  gap: 6px;
 }
 
 .nav-btn-auto:hover {
@@ -1435,21 +1436,42 @@ body {
 }
 
 .nav-btn-auto svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
+/* 활성(정지) 상태: 빨간색 — 클릭하면 멈춘다는 것을 직관적으로 표시 */
 .nav-btn-auto.active {
+  background: linear-gradient(135deg, #ff6b6b 0%, #e53e3e 100%);
+  box-shadow: 0 4px 14px rgba(229, 62, 62, 0.35);
   animation: pulse-auto 1.5s infinite;
+}
+
+.nav-btn-auto.active:hover {
+  box-shadow: 0 6px 20px rgba(229, 62, 62, 0.55);
 }
 
 @keyframes pulse-auto {
   0%, 100% {
-    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35), 0 0 0 0 rgba(124, 58, 237, 0.4);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25), 0 0 0 0 rgba(255, 255, 255, 0.3);
   }
   50% {
-    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35), 0 0 0 8px rgba(124, 58, 237, 0);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25), 0 0 0 8px rgba(255, 255, 255, 0);
   }
+}
+
+/* ============================================
+   처음으로 버튼 (동화 마지막 페이지에서만 표시)
+   ============================================ */
+.nav-btn-restart {
+  background: linear-gradient(135deg, #ffd86e 0%, #f5a623 100%);
+  color: #1a1a2e;
+  box-shadow: 0 4px 14px rgba(245, 166, 35, 0.35);
+}
+
+.nav-btn-restart:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(245, 166, 35, 0.5);
 }
 
 /* ============================================
@@ -1714,11 +1736,22 @@ body {
   .nav-btn-auto {
     min-width: 42px;
     padding: 0 10px;
+    font-size: 0;   /* 모바일: 아이콘만 표시 */
+    gap: 0;
   }
 
   .nav-btn-auto svg {
     width: 16px;
     height: 16px;
+  }
+
+  .auto-btn-label {
+    display: none;
+  }
+
+  .nav-btn-restart {
+    min-width: 80px;
+    padding: 0 14px;
   }
 
   .resume-toast {
