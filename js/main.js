@@ -66,7 +66,7 @@ function initDesktopBook() {
   const prevBtn = document.getElementById("btn-prev");
   const nextBtn = document.getElementById("btn-next");
   const pageIndicator = document.getElementById("page-indicator");
-  const TOTAL_STORIES = 5;
+  const TOTAL_STORIES = 6;
 
   const updateIndicator = () => {
     const current = pageFlip.getCurrentPageIndex();
