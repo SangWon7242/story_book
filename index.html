@@ -22,26 +22,48 @@
     <div class="app-container">
       <!-- Top Bar -->
       <div class="top-bar">
-        <div class="top-bar-title">
-          <h1>📖 비프의 푸른 바다 모험</h1>
-          <span class="subtitle"
-            >화성에서 온 로봇, 비프의 신비로운 지구 탐험기</span
-          >
+        <div class="top-bar-left">
+          <button id="btn-library" class="toolbar-btn" aria-label="동화 목록" title="동화 목록">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+            목록
+          </button>
+          <div class="top-bar-title">
+            <h1>📖 비프의 푸른 바다 모험</h1>
+            <span class="subtitle">화성에서 온 로봇, 비프의 신비로운 지구 탐험기</span>
+          </div>
         </div>
-        <div class="top-bar-meta">
-          <div class="meta-item">
-            <span class="meta-label">테마</span>
-            <span class="meta-value">새로운 만남과 우정</span>
+        <div class="top-bar-right">
+          <div class="top-bar-meta">
+            <div class="meta-item">
+              <span class="meta-label">테마</span>
+              <span class="meta-value">새로운 만남과 우정</span>
+            </div>
+            <div class="meta-divider"></div>
+            <div class="meta-item">
+              <span class="meta-label">주인공</span>
+              <span class="meta-value">로봇 비프 &amp; 집게</span>
+            </div>
+            <div class="meta-divider"></div>
+            <div class="meta-item">
+              <span class="meta-label">스타일</span>
+              <span class="meta-value">사이버펑크 동화</span>
+            </div>
           </div>
-          <div class="meta-divider"></div>
-          <div class="meta-item">
-            <span class="meta-label">주인공</span>
-            <span class="meta-value">로봇 비프 &amp; 집게</span>
-          </div>
-          <div class="meta-divider"></div>
-          <div class="meta-item">
-            <span class="meta-label">스타일</span>
-            <span class="meta-value">사이버펑크 동화</span>
+          <!-- Settings Toolbar -->
+          <div class="settings-toolbar">
+            <div class="font-size-group">
+              <button class="toolbar-btn font-btn" data-size="small" aria-label="작은 글자" title="작은 글자">가</button>
+              <button class="toolbar-btn font-btn active" data-size="medium" aria-label="보통 글자" title="보통 글자">가</button>
+              <button class="toolbar-btn font-btn" data-size="large" aria-label="큰 글자" title="큰 글자">가</button>
+            </div>
+            <button id="btn-theme-toggle" class="toolbar-btn" aria-label="다크모드 전환" title="다크모드 전환">
+              <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path stroke-linecap="round" d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+              <svg class="icon-moon" style="display:none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+            </button>
+            <button id="btn-sfx-toggle" class="toolbar-btn" aria-label="효과음 전환" title="효과음 ON/OFF">
+              <svg class="icon-sfx-on" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+              <svg class="icon-sfx-off" style="display:none" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+            </button>
           </div>
         </div>
       </div>
@@ -325,6 +347,9 @@
           </svg>
           이전
         </button>
+        <button id="btn-autoplay" class="nav-btn nav-btn-auto" aria-label="자동 넘김" title="자동 넘김">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
         <span id="page-indicator" class="page-indicator">표지</span>
         <button
           id="btn-next"
@@ -347,6 +372,51 @@
           </svg>
         </button>
       </nav>
+    </div>
+
+    <!-- Resume Toast -->
+    <div id="resume-toast" class="resume-toast" style="display:none">
+      <span>이전에 읽던 곳이 있어요!</span>
+      <button id="resume-toast-btn" class="resume-toast-btn">이어서 읽기</button>
+      <button id="resume-toast-close" class="resume-toast-close" aria-label="닫기">&times;</button>
+    </div>
+
+    <!-- Library Screen -->
+    <div id="library-screen" class="library-screen" style="display:none">
+      <div class="library-header">
+        <h2>동화 라이브러리</h2>
+        <p>읽고 싶은 동화를 골라보세요!</p>
+      </div>
+      <div class="library-grid">
+        <div class="library-card library-card-active" data-story="beep">
+          <div class="library-card-cover">
+            <img src="images/1.png" alt="비프의 푸른 바다 모험 표지" />
+          </div>
+          <div class="library-card-info">
+            <h3>비프의 푸른 바다 모험</h3>
+            <span class="library-card-badge">읽기 가능</span>
+          </div>
+        </div>
+        <div class="library-card library-card-coming" data-story="coming1">
+          <div class="library-card-cover library-card-placeholder">
+            <span>?</span>
+          </div>
+          <div class="library-card-info">
+            <h3>새로운 이야기</h3>
+            <span class="library-card-badge coming">준비중</span>
+          </div>
+        </div>
+        <div class="library-card library-card-coming" data-story="coming2">
+          <div class="library-card-cover library-card-placeholder">
+            <span>?</span>
+          </div>
+          <div class="library-card-info">
+            <h3>새로운 이야기</h3>
+            <span class="library-card-badge coming">준비중</span>
+          </div>
+        </div>
+      </div>
+      <button id="btn-library-back" class="toolbar-btn library-back-btn">동화로 돌아가기</button>
     </div>
 
     <!-- Audio Player (Fixed, above nav) -->
