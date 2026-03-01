@@ -27,16 +27,24 @@
 
 - 🎵 **구연동화 오디오 플레이어** — 재생/일시정지, 프로그레스바, 볼륨 조절이 가능한 팝업형 오디오 플레이어
 - 🗣️ **TTS 문장 하이라이트** — 오디오 재생 시 현재 읽고 있는 문장을 실시간으로 강조 표시
+- 🎧 **MP3 오디오 최적화** — FFmpeg를 활용해 128kbps MP3로 변환, 빠른 로딩 속도 제공
 
 **독자 편의 기능**
 
 - 🌙 **다크/라이트 모드** — 한 번의 클릭으로 전체 테마 전환, 설정 localStorage 저장
 - 🔤 **글자 크기 조절** — 작게/보통/크게 3단계 조절, 설정 localStorage 저장
-- ▶️ **자동 넘김(오토플레이)** — 8초 간격 자동 페이지 전환, 오디오 재생 시 TTS 연동, 직관적인 색상 전환 버튼(보라=시작 / 빨강=정지)
+- ▶️ **자동 넘김(오토플레이)** — 3단계 속도 조절(보통/빠름/느림), 오디오 재생 시 TTS 연동, 직관적인 색상 전환 버튼(보라=시작 / 빨강=정지)
 - 🔖 **읽기 진행률 저장** — 마지막으로 읽은 페이지 자동 저장, 재방문 시 이어읽기 토스트 제공
 - 🔊 **페이지 전환 효과음** — Web Audio API로 생성한 스와이프·클릭 효과음, ON/OFF 토글
 - 🔄 **처음으로 버튼** — 동화 마지막 페이지에서 첫 표지로 즉시 이동
 - 📚 **동화 라이브러리** — 상단 목록 버튼으로 동화 선택 화면 전환 (현재 1편 + 준비중 2편)
+- 🖥️ **전체화면 모드** — 몰입감 있는 독서를 위한 브라우저 전체화면 전환
+
+**아키텍처 & 확장성**
+
+- 📦 **JSON 기반 동적 콘텐츠 로딩** — 스토리 데이터(텍스트, 이미지, TTS 타임스탬프)를 `data/story1.json`에 분리하여 HTML과 콘텐츠를 독립적으로 관리
+- ⚙️ **동적 HTML 렌더링** — `buildStoryHTML()` 함수가 JSON 데이터를 파싱하여 책 페이지를 자동 생성
+- 🌐 **PWA 기반 오프라인 지원** — Service Worker(`sw.js`) 등록으로 오프라인 캐싱 준비
 
 **어린이 친화적 UX**
 
@@ -49,11 +57,13 @@
 
 ```
 story_book/
-├── index.html              # 메인 HTML (동화 페이지 구조 + 6챕터 + UI 컴포넌트)
+├── index.html              # 메인 HTML (UI 컴포넌트 + 동적 페이지 컨테이너)
 ├── css/
 │   └── style.css           # 전체 스타일시트 (양면 펼침 레이아웃 + 다크모드 + 6단계 반응형)
 ├── js/
-│   └── main.js             # 전체 로직 (StPageFlip, 오디오, TTS, 다크모드, 자동넘김 등)
+│   └── main.js             # 전체 로직 (JSON 로딩, 동적 렌더링, StPageFlip, 오디오, TTS 등)
+├── data/
+│   └── story1.json         # 📦 스토리 데이터 (챕터별 텍스트, 이미지 경로, TTS 타임스탬프)
 ├── images/
 │   ├── 1.png               # Chapter 1 삽화
 │   ├── 2.png               # Chapter 2 삽화
@@ -62,7 +72,8 @@ story_book/
 │   ├── 5.png               # Chapter 5 삽화
 │   └── 6.png               # Chapter 6 삽화
 ├── audio/
-│   └── story_audio.wav     # 구연동화 오디오 파일
+│   └── story_audio.mp3     # 구연동화 오디오 파일 (MP3, 128kbps)
+├── sw.js                   # Service Worker (PWA 오프라인 캐싱)
 ├── .agent/
 │   └── skills/             # AI 에이전트 스킬 가이드라인
 │       ├── storybook-page-management/   # 페이지 추가/수정/삭제 규칙
@@ -75,6 +86,34 @@ story_book/
 │   └── GEMINI.md           # Gemini AI 코딩 에이전트 시스템 프롬프트
 └── README.md               # 프로젝트 문서
 ```
+
+---
+
+## 📦 데이터 구조 (`data/story1.json`)
+
+스토리 콘텐츠는 JSON 파일로 분리되어 있으며, 다음과 같은 구조를 갖습니다:
+
+```json
+{
+  "title": "비프의 푸른 바다 모험",
+  "subtitle": "화성에서 온 로봇, 비프의 신비로운 지구 탐험기",
+  "audio": "audio/story_audio.mp3",
+  "chapters": [
+    {
+      "chapterNum": 1,
+      "title": "안녕, 푸른 지구야!",
+      "image": "images/1.png",
+      "imageAlt": "비프가 푸른 지구의 바다에 도착한 장면",
+      "sentences": [
+        { "time": 0, "text": "먼지 폴폴 날리는 화성에서 온..." },
+        { "time": 5.5, "text": "비프의 가슴에서는 무지갯빛..." }
+      ]
+    }
+  ]
+}
+```
+
+> **새로운 동화를 추가하려면** `data/story2.json`을 만들고 같은 구조로 작성하면 됩니다. HTML 수정 없이 콘텐츠만 교체할 수 있습니다.
 
 ---
 
@@ -93,21 +132,24 @@ story_book/
 
 ## 🛠️ 기술 스택
 
-| 영역            | 기술                                                      | 설명                                                        |
-| --------------- | --------------------------------------------------------- | ----------------------------------------------------------- |
-| **구조**        | HTML5                                                     | 시맨틱 마크업, SEO 메타태그                                 |
-| **스타일**      | CSS3 (Vanilla)                                            | CSS Variables, Flexbox, 6단계 미디어쿼리, 애니메이션        |
-| **로직**        | Vanilla JavaScript (ES6+)                                 | 모듈화 패턴, DOM 조작, localStorage, Web Audio API          |
-| **페이지 플립** | [StPageFlip](https://github.com/nicklev/page-flip) v2.0.7 | 양면 펼침 책장 넘김 효과 라이브러리                         |
-| **오디오**      | Web Audio API (내장)                                      | 외부 파일 없이 효과음 생성 (화이트노이즈 스와이프, 팝 클릭) |
-| **폰트**        | Google Fonts (Jua, Playfair Display, Nanum Gothic)        | 어린이 친화적 + 프리미엄 타이포그래피                       |
-| **AI 에이전트** | Claude Code + GEMINI.md + Skills                          | AI 기반 바이브 코딩 개발 워크플로우                         |
+| 영역            | 기술                                                      | 설명                                                          |
+| --------------- | --------------------------------------------------------- | ------------------------------------------------------------- |
+| **구조**        | HTML5                                                     | 시맨틱 마크업, SEO 메타태그                                   |
+| **스타일**      | CSS3 (Vanilla)                                            | CSS Variables, Flexbox, 6단계 미디어쿼리, 애니메이션          |
+| **로직**        | Vanilla JavaScript (ES6+)                                 | 모듈화 패턴, DOM 조작, Fetch API, localStorage, Web Audio API |
+| **데이터**      | JSON                                                      | 스토리 콘텐츠 분리, 동적 로딩 (`data/story1.json`)            |
+| **페이지 플립** | [StPageFlip](https://github.com/nicklev/page-flip) v2.0.7 | 양면 펼침 책장 넘김 효과 라이브러리                           |
+| **오디오**      | Web Audio API + MP3                                       | 구연동화 재생 + 효과음 생성 (화이트노이즈 스와이프, 팝 클릭)  |
+| **오디오 변환** | FFmpeg                                                    | WAV → MP3 (128kbps) 변환, 파일 크기 최적화                    |
+| **폰트**        | Google Fonts (Jua, Playfair Display, Nanum Gothic)        | 어린이 친화적 + 프리미엄 타이포그래피                         |
+| **PWA**         | Service Worker                                            | 오프라인 캐싱 및 앱 설치 지원 준비                            |
+| **AI 에이전트** | Claude Code + GEMINI.md + Skills                          | AI 기반 바이브 코딩 개발 워크플로우                           |
 
 ---
 
 ## 🚀 실행 방법
 
-별도의 빌드 과정 없이 `index.html`을 브라우저에서 직접 열면 됩니다.
+> **⚠️ 중요**: JSON 데이터를 `fetch()`로 동적 로딩하기 때문에, `file://` 프로토콜로는 CORS 정책에 의해 정상 동작하지 않습니다. 반드시 **로컬 서버**를 사용해주세요.
 
 ```bash
 # 방법 1: Live Server 사용 (VS Code 확장) — 권장
@@ -117,11 +159,10 @@ story_book/
 python -m http.server 8080
 # → http://localhost:8080 접속
 
-# 방법 3: 파일 직접 열기 (일부 브라우저에서 오디오 재생 제한 가능)
-open index.html
+# 방법 3: Node.js http-server
+npx http-server -p 8080
+# → http://localhost:8080 접속
 ```
-
-> **참고**: Web Audio API 및 오디오 파일 재생을 위해 로컬 서버(`Live Server` 또는 `python -m http.server`) 사용을 권장합니다.
 
 ---
 
@@ -175,14 +216,20 @@ open index.html
 - [x] **TTS 문장 하이라이트** — 오디오 재생 시 문장별 실시간 강조
 - [x] **다크/라이트 모드** — 테마 전환 + localStorage 저장
 - [x] **글자 크기 조절** — 3단계 조절 + localStorage 저장
-- [x] **자동 넘김(오토플레이)** — 타이머 기반 자동 페이지 전환
+- [x] **자동 넘김(오토플레이)** — 타이머 기반 자동 페이지 전환, 3단계 속도 조절
 - [x] **읽기 진행률 저장** — localStorage + 이어읽기 토스트
 - [x] **페이지 전환 효과음** — Web Audio API (외부 파일 불필요)
 - [x] **동화 라이브러리 화면** — 목록 UI + 동화 선택 전환
-- [ ] **개인화 기능** — 사용자 이름 입력 시 주인공 이름 변경
-- [ ] **스토리 JSON 분리** — 다양한 동화 테마 추가 지원
-- [ ] **다국어 지원** — 영어/일본어 번역 버전
+- [x] **스토리 JSON 분리** — 콘텐츠/구조 완전 분리, 동적 HTML 렌더링
+- [x] **오디오 MP3 최적화** — FFmpeg으로 WAV → MP3 변환 (128kbps)
+- [x] **전체화면 모드** — Fullscreen API로 몰입감 있는 독서 경험
+- [x] **Service Worker(PWA)** — 오프라인 캐싱 인프라 구축
 - [x] **GitHub Pages 배포** — 온라인 퍼블리싱
+- [ ] **터치 파티클 이펙트** — 클릭/터치 시 마법 파티클 애니메이션
+- [ ] **스플래시 스크린** — 앱 로딩 중 귀여운 애니메이션 표시
+- [ ] **PWA 완전 구현** — manifest.json + 앱 설치 프롬프트
+- [ ] **개인화 기능** — 사용자 이름 입력 시 주인공 이름 변경
+- [ ] **다국어 지원** — 영어/일본어 번역 버전
 
 ---
 
