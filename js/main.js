@@ -2,7 +2,7 @@
    비프의 푸른 바다 모험 - Main Application JS
    데스크톱: StPageFlip 양면 펼침
    태블릿/모바일: 풀스크린 카드 뷰 (이미지 상단 + 텍스트 하단)
-   + 기능: TTS 하이라이트, 다크모드, 글자크기, 자동넘김,
+   + 기능: 챕터별 TTS 오디오, 하이라이트, 다크모드, 글자크기, 자동넘김,
      읽기진행률, 효과음, 라이브러리, 전체화면, 이미지 프리로드
    ============================================ */
 
@@ -11,14 +11,12 @@ const MOBILE_BREAKPOINT = 768;
 let TOTAL_STORIES = 0;
 
 /* ============================================
-   기능 1: TTS 문장 하이라이트 타임스탬프
-   각 챕터별 문장 시작 시간(초) — JSON에서 로드됨
+   챕터별 오디오 시스템
+   각 챕터마다 독립적인 Audio 객체를 관리합니다.
    ============================================ */
-let CHAPTER_TIMESTAMPS = [];
+let chapterAudios = []; // 챕터별 Audio 객체 배열
+let currentPlayingChapter = -1; // 현재 재생 중인 챕터 인덱스 (-1 = 없음)
 let storyData = null;
-
-/* 하이라이트 타이밍 오프셋 (초) — 양수 값이면 하이라이트가 늦게 표시됨 */
-const TTS_HIGHLIGHT_OFFSET = 3.0;
 
 /* 자동넘김 속도 옵션: 보통 → 빠름 → 느림 순환 */
 const AUTOPLAY_SPEEDS = [
@@ -39,10 +37,10 @@ let appState = {
   audioCtx: null,
   isFlipping: false, // 페이지 넘김 애니메이션 진행 중 여부
   flipDebounceTimer: null,
-  lastHighlightChapter: -1,
   initialized: false, // 초기화 완료 여부 — 효과음 방지용
   celebrated: false, // 마지막 페이지 축하 재생 여부
   autoplaySpeedIdx: 0, // 현재 자동넘김 속도 인덱스
+  userStartedAudio: false, // 사용자가 오디오를 시작했는지 여부
 };
 
 /* 페이지 변경 콜백 — 각 모드에서 등록 */
@@ -66,28 +64,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     storyData = await res.json();
 
     TOTAL_STORIES = storyData.chapters.length;
-    CHAPTER_TIMESTAMPS = storyData.chapters.map((ch) => {
-      return {
-        start: ch.sentences[0].time,
-        sentences: ch.sentences.map((s) => s.time),
-      };
-    });
 
-    // Update Top Bar
+    /* 챕터별 Audio 객체 생성 */
+    initChapterAudios(storyData);
+
+    // Top Bar 업데이트
     const titleH1 = document.querySelector(".top-bar-title h1");
     if (titleH1) titleH1.textContent = "📖 " + storyData.title;
     const subT = document.querySelector(".top-bar-title .subtitle");
     if (subT) subT.textContent = storyData.subtitle;
 
-    // Set audio source
-    const audioEl = document.getElementById("story-audio");
-    if (audioEl) {
-      const source = audioEl.querySelector("source");
-      if (source) source.src = storyData.audio;
-      audioEl.load();
-    }
-
-    // Build the book HTML
+    // HTML 동적 생성
     buildStoryHTML(storyData);
   } catch (e) {
     console.error("Error loading story:", e);
@@ -130,6 +117,225 @@ document.addEventListener("DOMContentLoaded", async () => {
     }, 300);
   });
 });
+
+/* ============================================
+   챕터별 Audio 객체 초기화
+   각 챕터에 독립적인 Audio 엘리먼트를 생성합니다.
+   ============================================ */
+function initChapterAudios(data) {
+  chapterAudios = [];
+
+  data.chapters.forEach((ch, idx) => {
+    if (!ch.audio) {
+      chapterAudios.push(null);
+      return;
+    }
+
+    const audio = new Audio();
+    audio.preload = "metadata";
+    audio.src = ch.audio;
+
+    /* 챕터 오디오 종료 시: 다음 챕터로 자동 전환 */
+    audio.addEventListener("ended", () => {
+      const nextChapter = idx + 1;
+      if (nextChapter < TOTAL_STORIES) {
+        /* 다음 챕터 페이지로 전환 */
+        const nextPage = nextChapter + 1;
+        if (onPageChange) {
+          onPageChange(nextPage);
+        }
+        /* 약간의 딜레이 후 다음 챕터 오디오 자동 재생 */
+        setTimeout(() => {
+          playChapterAudio(nextChapter);
+        }, 800);
+      } else {
+        /* 마지막 챕터 종료 — 재생 상태 초기화 */
+        currentPlayingChapter = -1;
+        updateAudioPlayerUI();
+      }
+    });
+
+    /* 시간 업데이트 시 해당 챕터의 하이라이팅 동기화 */
+    audio.addEventListener("timeupdate", () => {
+      if (currentPlayingChapter !== idx) return;
+      updateChapterHighlight(idx, audio.currentTime, audio.duration);
+      updateAudioProgressUI(audio);
+    });
+
+    /* 메타데이터 로드 시 UI 업데이트 */
+    audio.addEventListener("loadedmetadata", () => {
+      if (currentPlayingChapter === idx) {
+        updateAudioDurationUI(audio);
+      }
+    });
+
+    chapterAudios.push(audio);
+  });
+}
+
+/* ============================================
+   챕터 오디오 재생/정지/전환
+   ============================================ */
+
+/* 특정 챕터의 오디오 재생 */
+function playChapterAudio(chapterIdx) {
+  if (chapterIdx < 0 || chapterIdx >= chapterAudios.length) return;
+  const audio = chapterAudios[chapterIdx];
+  if (!audio) return;
+
+  /* 이전 챕터 오디오 정지 */
+  if (currentPlayingChapter >= 0 && currentPlayingChapter !== chapterIdx) {
+    stopChapterAudio(currentPlayingChapter);
+  }
+
+  currentPlayingChapter = chapterIdx;
+  audio.currentTime = 0;
+  audio.play().catch((e) => {
+    console.warn("오디오 재생 실패 (사용자 인터랙션 필요):", e);
+  });
+
+  appState.userStartedAudio = true;
+  updateAudioPlayerUI();
+  updateAudioDurationUI(audio);
+}
+
+/* 특정 챕터의 오디오 정지 */
+function stopChapterAudio(chapterIdx) {
+  if (chapterIdx < 0 || chapterIdx >= chapterAudios.length) return;
+  const audio = chapterAudios[chapterIdx];
+  if (!audio) return;
+
+  audio.pause();
+  audio.currentTime = 0;
+  clearChapterHighlights(chapterIdx);
+}
+
+/* 모든 챕터 오디오 정지 */
+function stopAllChapterAudios() {
+  chapterAudios.forEach((audio, idx) => {
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+    clearChapterHighlights(idx);
+  });
+  currentPlayingChapter = -1;
+  updateAudioPlayerUI();
+}
+
+/* 현재 챕터 오디오 일시정지/재개 토글 */
+function toggleCurrentChapterAudio() {
+  const chapterIdx = getCurrentChapter();
+
+  if (chapterIdx < 0) return;
+
+  const audio = chapterAudios[chapterIdx];
+  if (!audio) return;
+
+  if (currentPlayingChapter === chapterIdx && !audio.paused) {
+    /* 현재 재생 중 → 일시정지 */
+    audio.pause();
+    updateAudioPlayerUI();
+  } else if (currentPlayingChapter === chapterIdx && audio.paused) {
+    /* 현재 일시정지 상태 → 재개 */
+    audio.play().catch(() => {});
+    appState.userStartedAudio = true;
+    updateAudioPlayerUI();
+  } else {
+    /* 새 챕터 재생 시작 */
+    playChapterAudio(chapterIdx);
+  }
+}
+
+/* 현재 재생 중인 Audio 객체 반환 */
+function getCurrentAudio() {
+  if (currentPlayingChapter < 0) return null;
+  return chapterAudios[currentPlayingChapter] || null;
+}
+
+/* ============================================
+   챕터별 하이라이팅 로직
+   오디오 duration을 문장 수로 균등 분할하여 하이라이팅
+   ============================================ */
+function updateChapterHighlight(chapterIdx, currentTime, duration) {
+  if (!storyData || chapterIdx < 0 || chapterIdx >= storyData.chapters.length)
+    return;
+
+  const chapter = storyData.chapters[chapterIdx];
+  const sentenceCount = chapter.sentences.length;
+  if (sentenceCount === 0 || !duration || isNaN(duration)) return;
+
+  /* 각 문장의 시간 영역을 균등 분할 */
+  const timePerSentence = duration / sentenceCount;
+  let activeSentence = Math.floor(currentTime / timePerSentence);
+  activeSentence = Math.min(activeSentence, sentenceCount - 1);
+  activeSentence = Math.max(activeSentence, 0);
+
+  highlightSentence(chapterIdx, activeSentence);
+}
+
+/* 특정 챕터의 하이라이트 초기화 */
+function clearChapterHighlights(chapterIdx) {
+  let targetBody = null;
+
+  if (appState.isMobile) {
+    const mobileBodies = document.querySelectorAll(
+      ".mobile-text-section .story-body",
+    );
+    if (mobileBodies[chapterIdx]) targetBody = mobileBodies[chapterIdx];
+  } else {
+    const desktopBodies = document.querySelectorAll(".page-story .story-body");
+    if (desktopBodies[chapterIdx]) targetBody = desktopBodies[chapterIdx];
+  }
+
+  if (!targetBody) return;
+
+  targetBody.querySelectorAll(".sentence").forEach((el) => {
+    el.classList.remove("active", "read");
+  });
+}
+
+/* 모든 문장에서 active / read 클래스 초기화 */
+function clearAllHighlights() {
+  document
+    .querySelectorAll(".sentence.active, .sentence.read")
+    .forEach((el) => {
+      el.classList.remove("active", "read");
+    });
+}
+
+/* 특정 챕터의 특정 문장 하이라이팅 */
+function highlightSentence(chapterIdx, sentenceIdx) {
+  /* 해당 챕터 내에서만 하이라이팅 업데이트 */
+  let targetBody = null;
+
+  if (appState.isMobile) {
+    const mobileBodies = document.querySelectorAll(
+      ".mobile-text-section .story-body",
+    );
+    if (mobileBodies[chapterIdx]) targetBody = mobileBodies[chapterIdx];
+  } else {
+    const desktopBodies = document.querySelectorAll(".page-story .story-body");
+    if (desktopBodies[chapterIdx]) targetBody = desktopBodies[chapterIdx];
+  }
+
+  if (!targetBody) return;
+
+  const sentences = targetBody.querySelectorAll(".sentence");
+
+  /* 기존 active 문장을 read로 전환 */
+  sentences.forEach((el, idx) => {
+    if (idx < sentenceIdx) {
+      el.classList.remove("active");
+      el.classList.add("read");
+    } else if (idx === sentenceIdx) {
+      el.classList.remove("read");
+      el.classList.add("active");
+    } else {
+      el.classList.remove("active", "read");
+    }
+  });
+}
 
 /* ============================================
    HTML 동적 생성 (JSON 데이터 기반)
@@ -197,6 +403,39 @@ function buildStoryHTML(data) {
 }
 
 /* ============================================
+   페이지 전환 시 챕터 오디오 자동 연동
+   ============================================ */
+function handlePageChangeAudio(newPage) {
+  const newChapter =
+    newPage >= 1 && newPage <= TOTAL_STORIES ? newPage - 1 : -1;
+
+  if (newChapter < 0) {
+    /* 표지 또는 뒷표지 → 모든 오디오 정지 */
+    if (currentPlayingChapter >= 0) {
+      stopAllChapterAudios();
+    }
+    return;
+  }
+
+  if (newChapter === currentPlayingChapter) {
+    /* 같은 챕터 → 아무것도 하지 않음 */
+    return;
+  }
+
+  /* 사용자가 오디오를 한 번이라도 시작했으면, 페이지 전환 시 자동 재생 */
+  if (appState.userStartedAudio) {
+    playChapterAudio(newChapter);
+  } else {
+    /* 아직 사용자가 오디오를 시작하지 않았으면 UI만 업데이트 */
+    if (currentPlayingChapter >= 0) {
+      stopChapterAudio(currentPlayingChapter);
+    }
+    currentPlayingChapter = -1;
+    updateAudioPlayerUI();
+  }
+}
+
+/* ============================================
    데스크톱: StPageFlip 양면 펼침 모드
    ============================================ */
 function initDesktopBook() {
@@ -252,6 +491,7 @@ function initDesktopBook() {
   /* silent=true 이면 효과음 없이 인디케이터만 갱신 (초기화 시 사용) */
   const updateIndicator = (silent = false) => {
     const current = pageFlip.getCurrentPageIndex();
+    const prevPage = appState.currentPage;
     appState.currentPage = flipIndexToPage(current);
     appState.isFlipping = false;
 
@@ -268,6 +508,11 @@ function initDesktopBook() {
     saveLastPage();
     preloadNextImage(appState.currentPage);
     if (!silent) playSfx("flip");
+
+    /* 챕터 오디오 자동 연동 */
+    if (prevPage !== appState.currentPage) {
+      handlePageChangeAudio(appState.currentPage);
+    }
   };
 
   /* flip 이벤트가 효과음을 전담 — 버튼 클릭에서 중복 방지 */
@@ -318,6 +563,9 @@ function initDesktopBook() {
       pageFlip.flip(flipIdx);
       appState.flipDebounceTimer = null;
     }, 300);
+
+    /* 챕터 오디오 자동 연동 */
+    handlePageChangeAudio(targetPage);
   };
 }
 
@@ -398,6 +646,7 @@ function initMobileBook() {
       }
     });
 
+    const prevPage = appState.currentPage;
     currentSlide = index;
     appState.currentPage = index;
 
@@ -414,6 +663,11 @@ function initMobileBook() {
     saveLastPage();
     preloadNextImage(index);
     if (!silent) playSfx("flip");
+
+    /* 챕터 오디오 자동 연동 */
+    if (prevPage !== appState.currentPage) {
+      handlePageChangeAudio(appState.currentPage);
+    }
   }
 
   /* showSlide 가 효과음을 전담 — 버튼에서 중복 방지 */
@@ -465,12 +719,9 @@ function initMobileBook() {
 }
 
 /* ============================================
-   오디오 플레이어 + TTS 하이라이트 (기능 1)
+   오디오 플레이어 UI (챕터별 오디오)
    ============================================ */
 function initAudioPlayer() {
-  const audio = document.getElementById("story-audio");
-  if (!audio) return;
-
   const toggleBtn = document.getElementById("audio-toggle");
   const panel = document.getElementById("audio-panel");
   const playBtn = document.getElementById("audio-play-btn");
@@ -484,9 +735,13 @@ function initAudioPlayer() {
   let isPanelOpen = false;
   let isMuted = false;
   let previousVolume = 0.7;
-  audio.volume = 0.7;
 
-  /* stopPropagation 으로 document 핸들러와 충돌 방지 */
+  /* 모든 챕터 오디오에 볼륨 설정 */
+  chapterAudios.forEach((audio) => {
+    if (audio) audio.volume = 0.7;
+  });
+
+  /* 패널 열기/닫기 */
   toggleBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     isPanelOpen = !isPanelOpen;
@@ -500,110 +755,53 @@ function initAudioPlayer() {
     }
   });
 
-  const updatePlayState = () => {
-    const playIcon = playBtn.querySelector(".icon-play");
-    const pauseIcon = playBtn.querySelector(".icon-pause");
-    const togglePlay = toggleBtn.querySelector(".icon-play");
-    const togglePause = toggleBtn.querySelector(".icon-pause");
-
-    if (audio.paused) {
-      playIcon.style.display = "block";
-      pauseIcon.style.display = "none";
-      togglePlay.style.display = "block";
-      togglePause.style.display = "none";
-      toggleBtn.classList.remove("playing");
-    } else {
-      playIcon.style.display = "none";
-      pauseIcon.style.display = "block";
-      togglePlay.style.display = "none";
-      togglePause.style.display = "block";
-      toggleBtn.classList.add("playing");
-    }
-  };
-
+  /* 재생/일시정지 버튼 */
   playBtn.addEventListener("click", () => {
-    audio.paused ? audio.play() : audio.pause();
+    toggleCurrentChapterAudio();
   });
 
+  /* 토글 버튼 더블클릭 — 재생/일시정지 */
   toggleBtn.addEventListener("dblclick", (e) => {
     e.preventDefault();
-    audio.paused ? audio.play() : audio.pause();
+    toggleCurrentChapterAudio();
   });
 
-  audio.addEventListener("play", updatePlayState);
-  audio.addEventListener("pause", updatePlayState);
-
-  const formatTime = (sec) => {
-    if (isNaN(sec)) return "0:00";
-    const m = Math.floor(sec / 60);
-    const s = Math.floor(sec % 60);
-    return `${m}:${s.toString().padStart(2, "0")}`;
-  };
-
-  /* timeupdate — 프로그레스 + TTS 하이라이트 */
-  audio.addEventListener("timeupdate", () => {
-    if (!audio.duration) return;
-
-    progressFill.style.width = (audio.currentTime / audio.duration) * 100 + "%";
-    currentTimeEl.textContent = formatTime(audio.currentTime);
-
-    updateTTSHighlight(audio.currentTime);
-  });
-
-  /* seeked — 시크 완료 후 즉시 하이라이트 갱신 및 페이지 전환 */
-  audio.addEventListener("seeked", () => {
-    if (!audio.duration) return;
-    progressFill.style.width = (audio.currentTime / audio.duration) * 100 + "%";
-    currentTimeEl.textContent = formatTime(audio.currentTime);
-    clearAllHighlights();
-
-    let activeChapter = -1;
-    for (let i = CHAPTER_TIMESTAMPS.length - 1; i >= 0; i--) {
-      if (audio.currentTime >= CHAPTER_TIMESTAMPS[i].start) {
-        activeChapter = i;
-        break;
-      }
-    }
-    if (activeChapter >= 0) {
-      const targetPage = activeChapter + 1;
-      if (appState.currentPage !== targetPage && onPageChange) {
-        onPageChange(targetPage);
-      }
-      appState.lastHighlightChapter = activeChapter;
-    }
-
-    updateTTSHighlight(audio.currentTime);
-  });
-
-  audio.addEventListener("loadedmetadata", () => {
-    durationEl.textContent = formatTime(audio.duration);
-  });
-
+  /* 프로그레스 바 클릭 시크 */
   progressBar.addEventListener("click", (e) => {
+    const audio = getCurrentAudio();
+    if (!audio || !audio.duration) return;
     const rect = progressBar.getBoundingClientRect();
     audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
   });
 
+  /* 볼륨 슬라이더 */
   volumeSlider.addEventListener("input", (e) => {
     const vol = parseFloat(e.target.value);
-    audio.volume = vol;
+    chapterAudios.forEach((audio) => {
+      if (audio) audio.volume = vol;
+    });
     previousVolume = vol;
     isMuted = false;
     updateVolumeIcon(vol);
   });
 
+  /* 음소거 토글 */
   volumeBtn.addEventListener("click", () => {
     if (isMuted) {
-      audio.volume = previousVolume;
+      chapterAudios.forEach((audio) => {
+        if (audio) audio.volume = previousVolume;
+      });
       volumeSlider.value = previousVolume;
       isMuted = false;
     } else {
-      previousVolume = audio.volume;
-      audio.volume = 0;
+      previousVolume = parseFloat(volumeSlider.value) || 0.7;
+      chapterAudios.forEach((audio) => {
+        if (audio) audio.volume = 0;
+      });
       volumeSlider.value = 0;
       isMuted = true;
     }
-    updateVolumeIcon(audio.volume);
+    updateVolumeIcon(isMuted ? 0 : previousVolume);
   });
 
   const updateVolumeIcon = (vol) => {
@@ -616,86 +814,76 @@ function initAudioPlayer() {
     else hi.style.display = "block";
   };
 
-  updatePlayState();
-  updateVolumeIcon(audio.volume);
+  updateVolumeIcon(0.7);
+  updateAudioPlayerUI();
 }
 
 /* ============================================
-   TTS 하이라이트 로직 (기능 1)
+   오디오 플레이어 UI 업데이트 헬퍼들
    ============================================ */
-function updateTTSHighlight(rawTime) {
-  const currentTime = Math.max(0, rawTime - TTS_HIGHLIGHT_OFFSET);
-  let activeChapter = -1;
-  for (let i = CHAPTER_TIMESTAMPS.length - 1; i >= 0; i--) {
-    if (currentTime >= CHAPTER_TIMESTAMPS[i].start) {
-      activeChapter = i;
-      break;
-    }
-  }
-  if (activeChapter < 0) return;
+function updateAudioPlayerUI() {
+  const playBtn = document.getElementById("audio-play-btn");
+  const toggleBtn = document.getElementById("audio-toggle");
+  if (!playBtn || !toggleBtn) return;
 
-  const chapterData = CHAPTER_TIMESTAMPS[activeChapter];
-  let activeSentence = 0;
-  for (let i = chapterData.sentences.length - 1; i >= 0; i--) {
-    if (currentTime >= chapterData.sentences[i]) {
-      activeSentence = i;
-      break;
-    }
-  }
+  const playIcon = playBtn.querySelector(".icon-play");
+  const pauseIcon = playBtn.querySelector(".icon-pause");
+  const togglePlay = toggleBtn.querySelector(".icon-play");
+  const togglePause = toggleBtn.querySelector(".icon-pause");
 
-  if (activeChapter < appState.lastHighlightChapter) {
-    clearAllHighlights();
-  }
-  appState.lastHighlightChapter = activeChapter;
+  const audio = getCurrentAudio();
+  const isPlaying = audio && !audio.paused;
 
-  const audio = document.getElementById("story-audio");
-  const targetPage = activeChapter + 1;
-  if (
-    audio &&
-    !audio.paused &&
-    appState.currentPage !== targetPage &&
-    onPageChange
-  ) {
-    onPageChange(targetPage);
-  }
-
-  highlightSentence(activeChapter, activeSentence);
-}
-
-/* 모든 문장에서 active / read 클래스 초기화 */
-function clearAllHighlights() {
-  document
-    .querySelectorAll(".sentence.active, .sentence.read")
-    .forEach((el) => {
-      el.classList.remove("active", "read");
-    });
-}
-
-function highlightSentence(chapterIdx, sentenceIdx) {
-  document.querySelectorAll(".sentence.active").forEach((el) => {
-    el.classList.remove("active");
-    el.classList.add("read");
-  });
-
-  let targetBody = null;
-
-  if (appState.isMobile) {
-    const mobileBodies = document.querySelectorAll(
-      ".mobile-text-section .story-body",
-    );
-    if (mobileBodies[chapterIdx]) targetBody = mobileBodies[chapterIdx];
+  if (isPlaying) {
+    if (playIcon) playIcon.style.display = "none";
+    if (pauseIcon) pauseIcon.style.display = "block";
+    if (togglePlay) togglePlay.style.display = "none";
+    if (togglePause) togglePause.style.display = "block";
+    toggleBtn.classList.add("playing");
   } else {
-    const desktopBodies = document.querySelectorAll(".page-story .story-body");
-    if (desktopBodies[chapterIdx]) targetBody = desktopBodies[chapterIdx];
+    if (playIcon) playIcon.style.display = "block";
+    if (pauseIcon) pauseIcon.style.display = "none";
+    if (togglePlay) togglePlay.style.display = "block";
+    if (togglePause) togglePause.style.display = "none";
+    toggleBtn.classList.remove("playing");
   }
 
-  if (!targetBody) return;
-
-  const sentences = targetBody.querySelectorAll(".sentence");
-  if (sentences[sentenceIdx]) {
-    sentences[sentenceIdx].classList.remove("read");
-    sentences[sentenceIdx].classList.add("active");
+  /* 패널 타이틀 업데이트: 현재 챕터 표시 */
+  const panelTitle = document.querySelector(".audio-panel-title");
+  if (panelTitle) {
+    const chapterIdx = getCurrentChapter();
+    if (chapterIdx >= 0 && storyData) {
+      const chTitle = storyData.chapters[chapterIdx].title;
+      panelTitle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg> Ch.${chapterIdx + 1} ${chTitle}`;
+    } else {
+      panelTitle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg> 구연동화 오디오`;
+    }
   }
+}
+
+/* 프로그레스 바 & 현재시간 업데이트 */
+function updateAudioProgressUI(audio) {
+  const progressFill = document.getElementById("audio-progress-fill");
+  const currentTimeEl = document.getElementById("audio-current-time");
+  if (!progressFill || !currentTimeEl || !audio || !audio.duration) return;
+
+  progressFill.style.width = (audio.currentTime / audio.duration) * 100 + "%";
+  currentTimeEl.textContent = formatTime(audio.currentTime);
+}
+
+/* 전체 시간 업데이트 */
+function updateAudioDurationUI(audio) {
+  const durationEl = document.getElementById("audio-duration");
+  if (!durationEl || !audio) return;
+  durationEl.textContent = formatTime(audio.duration);
+}
+
+/* 시간 포맷팅 */
+function formatTime(sec) {
+  if (isNaN(sec)) return "0:00";
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
 /* ============================================
@@ -792,7 +980,8 @@ function initAutoplay() {
         appState.autoplayTimer = null;
         return;
       }
-      const audio = document.getElementById("story-audio");
+      /* 오디오가 재생 중이면 자동넘김 건너뛰기 */
+      const audio = getCurrentAudio();
       if (audio && !audio.paused) return;
       if (appState.currentPage >= TOTAL_STORIES + 1) {
         clearInterval(appState.autoplayTimer);
@@ -868,6 +1057,10 @@ function initRestartBtn() {
 
   btn.addEventListener("click", () => {
     playSfx("click");
+
+    /* 모든 오디오 정지 */
+    stopAllChapterAudios();
+    appState.userStartedAudio = false;
 
     if (appState.autoplayActive) {
       appState.autoplayActive = false;
@@ -1039,7 +1232,6 @@ function playSfx(type) {
 
 function playFlipSound(ctx) {
   // 3-레이어 실제 책 페이지 넘김 효과음
-  // Layer 1: 크리클(종이 바스락), Layer 2: 공기 스윕, Layer 3: 착지 덜컥
   const now = ctx.currentTime;
   const totalDuration = 0.42;
 
@@ -1068,7 +1260,7 @@ function playFlipSound(ctx) {
   crinkleSrc.start(now);
   crinkleSrc.stop(now + crinkleDur);
 
-  // === Layer 2: 종이가 공기를 가르는 휘슁 스윕 (고주파→저주파 sweep) ===
+  // === Layer 2: 종이가 공기를 가르는 휘슁 스윕 ===
   const whooshBuf = ctx.createBuffer(
     1,
     Math.floor(ctx.sampleRate * totalDuration),
@@ -1117,7 +1309,6 @@ function playFlipSound(ctx) {
 }
 
 function playClickSound(ctx) {
-  // 짧은 사인파 팝
   const osc = ctx.createOscillator();
   osc.type = "sine";
   osc.frequency.setValueAtTime(800, ctx.currentTime);
@@ -1134,7 +1325,6 @@ function playClickSound(ctx) {
 }
 
 function playCelebrationSound(ctx) {
-  // 상승 아르페지오: 도-미-솔-도 (C5-E5-G5-C6)
   const now = ctx.currentTime;
   const notes = [523.25, 659.25, 783.99, 1046.5];
   notes.forEach((freq, i) => {
@@ -1190,6 +1380,11 @@ function initLibrary() {
   const audioPlayer = document.querySelector(".audio-player");
 
   btnLibrary.addEventListener("click", () => {
+    /* 라이브러리 화면 전환 시 오디오 일시정지 */
+    const audio = getCurrentAudio();
+    if (audio && !audio.paused) audio.pause();
+    updateAudioPlayerUI();
+
     libraryScreen.style.display = "flex";
     if (appContainer) appContainer.style.display = "none";
     if (audioPlayer) audioPlayer.style.display = "none";
@@ -1205,9 +1400,9 @@ function initLibrary() {
     });
   }
 
-  const activeCard = libraryScreen.querySelector(".library-card-active");
-  if (activeCard) {
-    activeCard.addEventListener("click", () => {
+  const libReadBtn = libraryScreen.querySelector(".lib-btn");
+  if (libReadBtn) {
+    libReadBtn.addEventListener("click", () => {
       libraryScreen.style.display = "none";
       if (appContainer) appContainer.style.display = "flex";
       if (audioPlayer) audioPlayer.style.display = "flex";

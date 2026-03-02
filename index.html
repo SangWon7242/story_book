@@ -335,41 +335,136 @@
 
     <!-- Library Screen -->
     <div id="library-screen" class="library-screen" style="display: none">
+      <!-- 배경 파티클 -->
+      <div class="lib-particles">
+        <span class="lib-particle"></span>
+        <span class="lib-particle"></span>
+        <span class="lib-particle"></span>
+        <span class="lib-particle"></span>
+        <span class="lib-particle"></span>
+        <span class="lib-particle"></span>
+        <span class="lib-particle"></span>
+        <span class="lib-particle"></span>
+      </div>
+
       <div class="library-header">
+        <div class="lib-header-icon">📚</div>
         <h2>동화 라이브러리</h2>
-        <p>읽고 싶은 동화를 골라보세요!</p>
+        <p>책 위에 마우스를 올리면 열려요! 읽고 싶은 동화를 골라보세요.</p>
       </div>
-      <div class="library-grid">
-        <div class="library-card library-card-active" data-story="beep">
-          <div class="library-card-cover">
-            <img src="images/1.png" alt="비프의 푸른 바다 모험 표지" />
-          </div>
-          <div class="library-card-info">
-            <h3>비프의 푸른 바다 모험</h3>
-            <span class="library-card-badge">읽기 가능</span>
-          </div>
-        </div>
-        <div class="library-card library-card-coming" data-story="coming1">
-          <div class="library-card-cover library-card-placeholder">
-            <span>?</span>
-          </div>
-          <div class="library-card-info">
-            <h3>새로운 이야기</h3>
-            <span class="library-card-badge coming">준비중</span>
-          </div>
-        </div>
-        <div class="library-card library-card-coming" data-story="coming2">
-          <div class="library-card-cover library-card-placeholder">
-            <span>?</span>
-          </div>
-          <div class="library-card-info">
-            <h3>새로운 이야기</h3>
-            <span class="library-card-badge coming">준비중</span>
-          </div>
+
+      <!-- 책장 -->
+      <div class="library-shelf-section">
+        <div class="library-shelf">
+          <ul class="library-books-row">
+            <!-- Book 1 - 읽기 가능 -->
+            <li class="lib-book-slot">
+              <figure class="lib-book" data-story="beep">
+                <ul class="lib-hardcover-front">
+                  <li>
+                    <img src="images/1.png" alt="비프의 푸른 바다 모험 표지" />
+                    <span class="lib-ribbon available">읽기</span>
+                  </li>
+                  <li></li>
+                </ul>
+                <ul class="lib-page">
+                  <li></li>
+                  <li>
+                    <div class="lib-page-inner">
+                      <p class="lib-page-text">
+                        화성에서 온 로봇 비프의<br />신비로운 바다 모험!
+                      </p>
+                      <button class="lib-btn">읽기 시작 →</button>
+                    </div>
+                  </li>
+                  <li></li>
+                  <li></li>
+                  <li></li>
+                </ul>
+                <ul class="lib-hardcover-back">
+                  <li></li>
+                  <li></li>
+                </ul>
+                <ul class="lib-book-spine">
+                  <li></li>
+                  <li></li>
+                </ul>
+              </figure>
+              <div class="lib-book-info">
+                <h3>비프의 푸른 바다 모험</h3>
+                <span class="lib-info-meta">AI 창작 동화 · 6장</span>
+              </div>
+            </li>
+
+            <!-- Book 2 - 준비중 -->
+            <li class="lib-book-slot lib-slot-coming">
+              <figure class="lib-book lib-book-coming">
+                <ul class="lib-hardcover-front">
+                  <li class="lib-cover-placeholder">
+                    <span class="lib-coming-mark">?</span>
+                  </li>
+                  <li></li>
+                </ul>
+                <ul class="lib-page">
+                  <li></li>
+                  <li></li>
+                  <li></li>
+                  <li></li>
+                  <li></li>
+                </ul>
+                <ul class="lib-hardcover-back">
+                  <li></li>
+                  <li></li>
+                </ul>
+                <ul class="lib-book-spine">
+                  <li></li>
+                  <li></li>
+                </ul>
+              </figure>
+              <div class="lib-book-info">
+                <h3>새로운 이야기</h3>
+                <span class="lib-info-meta lib-coming-badge">Coming Soon</span>
+              </div>
+            </li>
+
+            <!-- Book 3 - 준비중 -->
+            <li class="lib-book-slot lib-slot-coming">
+              <figure class="lib-book lib-book-coming">
+                <ul class="lib-hardcover-front">
+                  <li class="lib-cover-placeholder">
+                    <span class="lib-coming-mark">?</span>
+                  </li>
+                  <li></li>
+                </ul>
+                <ul class="lib-page">
+                  <li></li>
+                  <li></li>
+                  <li></li>
+                  <li></li>
+                  <li></li>
+                </ul>
+                <ul class="lib-hardcover-back">
+                  <li></li>
+                  <li></li>
+                </ul>
+                <ul class="lib-book-spine">
+                  <li></li>
+                  <li></li>
+                </ul>
+              </figure>
+              <div class="lib-book-info">
+                <h3>새로운 이야기</h3>
+                <span class="lib-info-meta lib-coming-badge">Coming Soon</span>
+              </div>
+            </li>
+          </ul>
+          <!-- 나무 선반 -->
+          <div class="shelf-wood"></div>
         </div>
       </div>
-      <button id="btn-library-back" class="toolbar-btn library-back-btn">
-        동화로 돌아가기
+
+      <button id="btn-library-back" class="library-back-btn">
+        ← 동화로 돌아가기
       </button>
     </div>
 
@@ -506,10 +601,7 @@
       </button>
     </div>
 
-    <!-- Audio Element -->
-    <audio id="story-audio" preload="metadata">
-      <source src="audio/story_audio.mp3" type="audio/mpeg" />
-    </audio>
+    <!-- 챕터별 Audio 객체는 JS에서 동적으로 생성됩니다 -->
 
     <!-- Main Script -->
     <script src="js/main.js"></script>
