@@ -503,3 +503,112 @@
     font-size: 0.45rem;
   }
 }
+
+/* === 자동 넘김 버튼 (프롬프트 9) === */
+.navBtnAuto {
+  background: linear-gradient(135deg, #a56eff 0%, #7c3aed 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+  min-width: 80px;
+  padding: 0 14px;
+  font-size: 0.85rem;
+}
+
+.navBtnAuto:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
+}
+
+.navBtnAutoActive {
+  background: linear-gradient(135deg, #ff6b6b 0%, #e53e3e 100%);
+  box-shadow: 0 4px 14px rgba(229, 62, 62, 0.35);
+  animation: pulse-auto 1.5s infinite;
+}
+
+.navBtnAutoActive:hover {
+  box-shadow: 0 6px 20px rgba(229, 62, 62, 0.55);
+}
+
+.navBtnSpeed {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  min-width: 50px;
+  padding: 0 10px;
+  font-size: 0.75rem;
+}
+
+.navBtnSpeed:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* === 이어읽기 토스트 (프롬프트 10) === */
+.resumeToast {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #2f4f4f, #1a3333);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(197, 179, 88, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-child);
+  font-size: 0.85rem;
+  animation: slideDown 0.35s ease-out;
+}
+
+.resumeToastBtn {
+  background: var(--antique-gold);
+  color: #1a1a2e;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-family: var(--font-child);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.2s ease;
+}
+
+.resumeToastBtn:hover {
+  transform: scale(1.05);
+}
+
+.resumeToastClose {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+/* === 처음으로 버튼 (프롬프트 10) === */
+.restartBtn {
+  margin-top: 24px;
+  background: linear-gradient(135deg, #ffd86e 0%, #f5a623 100%);
+  color: #1a1a2e;
+  border: none;
+  border-radius: 30px;
+  padding: 10px 24px;
+  font-family: var(--font-child);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  z-index: 1;
+  box-shadow: 0 4px 14px rgba(245, 166, 35, 0.35);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.restartBtn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(245, 166, 35, 0.5);
+}

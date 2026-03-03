@@ -1,10 +1,13 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "비프의 푸른 바다 모험",
   description:
     "화성에서 온 로봇 비프의 신비로운 지구 바다 탐험 동화. 사이버펑크 스타일의 인터랙티브 동화책.",
+};
+
+export const viewport: Viewport = {
   themeColor: "#1b1b2f",
 };
 
