@@ -5,9 +5,9 @@
     {
       "chapterNum": 1,
       "title": "안녕, 푸른 지구야!",
-      "image": "images/1.png",
+      "image": "assets/images/1.png",
       "imageAlt": "비프가 푸른 지구의 바다에 도착한 장면",
-      "audio": "audio/chapter1.mp3",
+      "audio": "assets/audio/chapter1.mp3",
       "sentences": [
         {
           "text": "먼지 폴폴 날리는 화성에서 온 구식 로봇 비프가 드디어 푸른 지구에 도착했어요!"
@@ -26,9 +26,9 @@
     {
       "chapterNum": 2,
       "title": "새로운 친구, 집게",
-      "image": "images/2.png",
+      "image": "assets/images/2.png",
       "imageAlt": "비프와 집게가 처음 만나는 장면",
-      "audio": "audio/chapter2.mp3",
+      "audio": "assets/audio/chapter2.mp3",
       "sentences": [
         {
           "text": "그때 모래 사이로 반짝이는 은색 게 로봇이 쪼르르 나타나 비프에게 인사를 건넸어요."
@@ -46,9 +46,9 @@
     {
       "chapterNum": 3,
       "title": "반짝반짝 바다의 마법",
-      "image": "images/3.png",
+      "image": "assets/images/3.png",
       "imageAlt": "바다의 파도가 비프를 감싸는 마법 같은 장면",
-      "audio": "audio/chapter3.mp3",
+      "audio": "assets/audio/chapter3.mp3",
       "sentences": [
         {
           "text": "갑자기 거대한 파도가 쏴아아 몰려와 비프의 발등을 덮쳤어요."
@@ -68,9 +68,9 @@
     {
       "chapterNum": 4,
       "title": "보랏빛 노을 아래서",
-      "image": "images/4.png",
+      "image": "assets/images/4.png",
       "imageAlt": "보라빛 노을 아래 비프와 집게가 함께하는 장면",
-      "audio": "audio/chapter4.mp3",
+      "audio": "assets/audio/chapter4.mp3",
       "sentences": [
         {
           "text": "어느덧 노을이 지자 바다는 신비로운 보라색 네온 빛으로 물들었어요."
@@ -88,9 +88,9 @@
     {
       "chapterNum": 5,
       "title": "꿈꾸는 별빛 항해",
-      "image": "images/5.png",
+      "image": "assets/images/5.png",
       "imageAlt": "밤바다 위를 떠가는 빛나는 배를 바라보는 비프와 소라게 친구",
-      "audio": "audio/chapter5.mp3",
+      "audio": "assets/audio/chapter5.mp3",
       "sentences": [
         {
           "text": "밤하늘에 별들이 쏟아질 듯 반짝이는 시간, 비프는 꼬물꼬물 작은 소라게를 만났어요."
@@ -109,9 +109,9 @@
     {
       "chapterNum": 6,
       "title": "영원한 바다 친구들",
-      "image": "images/6.png",
+      "image": "assets/images/6.png",
       "imageAlt": "비프, 집게, 소라게가 모래사장에서 밤바다를 보는 장면",
-      "audio": "audio/chapter6.mp3",
+      "audio": "assets/audio/chapter6.mp3",
       "sentences": [
         {
           "text": "푸른 바다 아래, 세 친구는 나란히 앉아 파도 소리를 들었어요."

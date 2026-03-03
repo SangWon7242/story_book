@@ -1,229 +1,200 @@
 ---
 name: responsive-ebook-layout
-description: StPageFlip 기반 전자책 레이아웃 최적화 및 반응형 디자인 패턴을 정의합니다.
+description: PageFlip 기반 전자책 레이아웃 최적화 및 반응형 디자인 패턴을 정의합니다.
 ---
 
-# 📐 Responsive Ebook Layout Skill
+# 📐 Responsive Ebook Layout Skill (Next.js)
 
 ## 개요
 
-이 스킬은 **StPageFlip 라이브러리** 기반의 전자책 레이아웃을 다양한 디바이스에서 최적화하는 방법과 반응형 디자인 패턴을 제공합니다.
+이 스킬은 Next.js App Router 환경에서 **page-flip 라이브러리** 기반의 전자책 레이아웃을 다양한 디바이스에서 최적화하는 방법과 반응형 디자인 패턴을 제공합니다.
 
-## StPageFlip 라이브러리
+## 핵심 파일
 
-### CDN 링크
+| 파일                                               | 역할                             |
+| -------------------------------------------------- | -------------------------------- |
+| `src/components/BookViewer/StoryViewer.tsx`        | 메인 뷰어 (모바일/데스크톱 분기) |
+| `src/components/BookViewer/DesktopBook.tsx`        | 데스크톱 PageFlip 양면 펼침      |
+| `src/components/BookViewer/DesktopBook.module.css` | PageFlip 스타일                  |
+| `src/components/BookViewer/StoryViewer.module.css` | 모바일 카드뷰 스타일             |
+| `src/hooks/useResponsive.ts`                       | 반응형 분기 훅 (768px 기준)      |
 
-```html
-<script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+## page-flip 라이브러리
+
+### 설치 (npm)
+
+```bash
+npm install page-flip
+```
+
+### Dynamic Import (SSR 안전)
+
+```typescript
+useEffect(() => {
+  import("page-flip").then(({ PageFlip }) => {
+    // PageFlip 초기화
+  });
+}, []);
+```
+
+### 타입 선언 (`src/types/page-flip.d.ts`)
+
+```typescript
+declare module "page-flip" {
+  export class PageFlip {
+    constructor(element: HTMLElement, options: Record<string, unknown>);
+    loadFromHTML(pages: NodeListOf<HTMLElement>): void;
+    on(event: string, callback: (e: { data: number }) => void): void;
+    flip(pageIndex: number): void;
+    flipNext(): void;
+    flipPrev(): void;
+    getCurrentPageIndex(): number;
+    destroy(): void;
+  }
+}
 ```
 
 ### 주요 설정 옵션
 
-```javascript
-const pageFlip = new St.PageFlip(bookEl, {
-  width: pageW, // 페이지 너비 (px)
-  height: pageH, // 페이지 높이 (px)
-  size: "fixed", // "fixed" | "stretch"
-  showCover: true, // 표지 페이지 표시
-  maxShadowOpacity: 0.5, // 그림자 최대 불투명도
-  mobileScrollSupport: false, // 모바일 스크롤과 충돌 방지
-  flippingTime: 800, // 페이지 넘김 애니메이션 시간 (ms)
-  usePortrait: true, // 세로 모드 지원
-  startZIndex: 0, // 시작 z-index
-  autoSize: false, // 자동 크기 조정 비활성화
-  drawShadow: true, // 그림자 효과
+```typescript
+const pf = new PageFlip(container, {
+  width: pageW,
+  height: pageH,
+  size: "fixed",
+  showCover: true,
+  maxShadowOpacity: 0.5,
+  flippingTime: 800,
+  useMouseEvents: true,
+  startPage: 0,
+  usePortrait: false, // 데스크톱: false (양면)
+  mobileScrollSupport: false,
+  autoSize: false,
+  drawShadow: true,
 });
 ```
 
-### 페이지 크기 계산 로직
+## ⚠️ 페이지 인덱스 변환 (핵심!)
 
-현재 프로젝트에서 사용하는 페이지 크기 계산 알고리즘:
+StoryViewer의 `currentPage`는 **챕터 단위**이고, PageFlip의 내부 인덱스는 **물리 페이지 단위**입니다. 반드시 변환이 필요합니다.
 
-```javascript
-// book-stage 영역 기준
-const stageRect = bookStage.getBoundingClientRect();
-const availW = stageRect.width;
-const availH = stageRect.height;
+### 페이지 구조
 
-// 각 페이지는 3:4 비율
-const pageRatio = 3 / 4;
-let pageH = Math.floor(availH);
-let pageW = Math.floor(pageH * pageRatio);
+```
+StoryViewer currentPage (챕터 단위):
+  0 = 표지, 1 = Ch1, 2 = Ch2, ..., N+1 = 뒷표지
 
-// 가로 모드: 두 페이지가 나란히 표시되므로 가로 넘침 방지
-if (pageW * 2 > availW) {
-  pageW = Math.floor(availW / 2);
-  pageH = Math.floor(pageW / pageRatio);
-}
+PageFlip 물리 페이지:
+  0 = 앞표지 (hard)
+  1 = Ch1 일러스트,  2 = Ch1 텍스트
+  3 = Ch2 일러스트,  4 = Ch2 텍스트
+  ...
+  2N+1 = 뒷표지 (hard)
+```
 
-// 최소 크기 보장 (너무 작으면 읽기 어려움)
-pageW = Math.max(pageW, 220);
-pageH = Math.max(pageH, 300);
+### 변환 함수
+
+```typescript
+// 챕터 → 물리 페이지
+const chapterToPhysical = (cp: number): number => {
+  if (cp <= 0) return 0;
+  if (cp > chaptersLen) return chaptersLen * 2 + 1;
+  return (cp - 1) * 2 + 1;
+};
+
+// 물리 페이지 → 챕터
+const physicalToChapter = (pf: number): number => {
+  if (pf <= 0) return 0;
+  if (pf >= chaptersLen * 2 + 1) return chaptersLen + 1;
+  return Math.floor((pf - 1) / 2) + 1;
+};
 ```
 
 ## 레이아웃 구조
 
-### 전체 레이아웃 (Flexbox 기반)
-
 ```
 ┌─────────────────────────────────────────┐
-│  Top Bar (flex-shrink: 0)               │  ← 고정 높이
+│  TopBar (진행률 바 + 메타 + 설정)          │  ← flex-shrink: 0
 ├─────────────────────────────────────────┤
 │                                         │
-│        Book Area (flex: 1)              │  ← 남은 공간 채움
+│        Book Area (flex: 1)              │
 │  ┌────────────┬────────────┐            │
-│  │  Left Page │ Right Page │            │
-│  │  (Image)   │  (Text)    │            │
+│  │  Left Page │ Right Page │ ← Desktop  │
+│  │  (Image)   │  (Text)    │   PageFlip │
 │  └────────────┴────────────┘            │
 │                                         │
+│  ┌─────────────────────────┐            │
+│  │     Card View           │ ← Mobile   │
+│  │  [Image]                │            │
+│  │  [Text Section]         │            │
+│  └─────────────────────────┘            │
+│                                         │
 ├─────────────────────────────────────────┤
-│  Bottom Nav (flex-shrink: 0)            │  ← 고정 높이
+│  Bottom Nav (이전 | 자동 | 표지 | 다음)   │  ← flex-shrink: 0
 └─────────────────────────────────────────┘
-    [🎵] ← Audio Toggle (fixed position)
+     [🎵] ← Audio Toggle (fixed)
 ```
 
-### CSS 구조 핵심
+### CSS 핵심 (CSS Modules)
 
 ```css
-/* 전체 컨테이너: 뷰포트 전체를 차지 */
-.app-container {
+.appContainer {
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden !important;
 }
 
-/* 책 영역: 남은 공간 모두 차지 */
-.book-area {
+.bookArea {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden !important;
-  min-height: 0; /* Flexbox 최소 높이 리셋 (중요!) */
-}
-
-/* 책 스테이지: 100% 크기 */
-.book-stage {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden !important;
+  min-height: 0; /* Flexbox 최소 높이 리셋 */
 }
 ```
 
-## 페이지 타입별 스타일링
+## 반응형 분기
 
-### 일러스트레이션 페이지 (왼쪽)
+```typescript
+// StoryViewer.tsx
+const { isMobile } = useResponsive(); // 768px 기준
 
-```css
-.page-illustration {
-  background: radial-gradient(
-    ellipse at center,
-    #22304a 0%,
-    #1a2744 50%,
-    #131e36 100%
-  );
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  position: relative;
-}
-
-.illustration-wrap img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain; /* 이미지가 잘리지 않고 전체가 보이도록 */
-  padding: 12px;
-}
+{!isMobile ? (
+  <DesktopBook ... />
+) : (
+  <div className={styles.bookStage}>...</div>
+)}
 ```
 
-### 스토리 텍스트 페이지 (오른쪽)
+## 페이지 크기 계산 (데스크톱)
 
-```css
-.page-story {
-  background: var(--paper-cream); /* 따뜻한 종이 느낌 */
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-}
+```typescript
+const availW = parent.clientWidth - 40;
+const availH = parent.clientHeight - 20;
 
-.story-wrap {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 28px 24px; /* 충분한 여백 */
-  max-width: 420px;
-}
+// 3:4 비율
+const pageW = Math.max(220, Math.min(availW / 2, (availH * 3) / 4));
+const pageH = Math.max(300, Math.min(availH, (pageW * 4) / 3));
 ```
-
-## 스크롤 방지 전략
-
-StPageFlip과 페이지 스크롤 충돌을 방지하기 위한 핵심 규칙:
-
-```css
-/* 모든 컨테이너에 overflow: hidden 강제 */
-.app-container,
-.book-area,
-.book-stage,
-.book-container {
-  overflow: hidden !important;
-}
-
-/* 뷰포트 메타태그도 필수 */
-/* <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" /> */
-```
-
-## 키보드 내비게이션
-
-```javascript
-// 좌우 화살표 키로 페이지 넘기기
-document.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowLeft") pageFlip.flipPrev();
-  else if (e.key === "ArrowRight") pageFlip.flipNext();
-});
-```
-
-## 디바이스별 최적화 가이드
-
-### 태블릿 (주요 타겟)
-
-- 3:4 비율의 펼친 책 레이아웃 최적 표시
-- 터치 스와이프로 자연스러운 페이지 넘김
-- `mobileScrollSupport: false` 로 스크롤 충돌 방지
-
-### 모바일 (세로 모드)
-
-- `usePortrait: true` 로 한 페이지씩 표시
-- 최소 크기 `220x300px` 보장
-- 버튼 터치 영역 60px 이상 유지
-
-### 데스크톱
-
-- 넉넉한 공간에서 두 페이지 펼침 표시
-- 키보드 화살표 내비게이션 활성화
-- 마우스 드래그로 페이지 넘김 가능
 
 ## 레이아웃 수정 시 체크리스트
 
-- [ ] `overflow: hidden` 이 모든 부모 컨테이너에 적용되어 있는지 확인
-- [ ] `flex: 1` + `min-height: 0` 조합이 book-area에 적용되어 있는지 확인
-- [ ] 페이지 비율 3:4 유지되는지 확인
-- [ ] 이미지에 `object-fit: contain` 적용되어 있는지 확인
-- [ ] 최소 크기가 보장되는지 확인 (220x300px)
-- [ ] 모바일에서 스크롤 없이 전체 화면을 차지하는지 확인
-- [ ] 상단 바, 하단 내비게이션이 책 영역을 가리지 않는지 확인
+- [ ] `"use client"` 지시어 확인
+- [ ] `overflow: hidden` 전체 부모 체인에 적용
+- [ ] `flex: 1 + min-height: 0` 조합 확인
+- [ ] 페이지 비율 3:4 유지
+- [ ] 이미지 `object-fit: contain` 적용
+- [ ] 최소 크기 보장 (220×300px)
+- [ ] **챕터↔물리 페이지 인덱스 변환** 정합성 확인
+- [ ] `Fragment` 키가 고유한지 확인
 
 ## 주의사항
 
-- ⚠️ StPageFlip의 `loadFromHTML()` 은 DOM 요소가 모두 로드된 후 호출해야 합니다
-- ⚠️ 페이지 수가 홀수이면 마지막 페이지가 제대로 표시되지 않을 수 있습니다
-- ⚠️ CSS 변경 후 반드시 다양한 화면 크기에서 테스트하세요
-- ⚠️ `window._pageFlip` 전역 변수로 디버깅 시 접근 가능합니다
+- ⚠️ PageFlip은 `dynamic import`로만 로드 (SSR 불가)
+- ⚠️ 페이지 수가 홀수이면 마지막 페이지가 정상 표시되지 않을 수 있음
+- ⚠️ 페이지는 **쌍(pair)** 단위로 관리 (일러스트+텍스트)
+- ⚠️ `data-density="hard"`는 표지 페이지에만 사용
+- ⚠️ `useEffect` cleanup에서 반드시 `pf.destroy()` 호출
 - ⚠️ 모든 주석은 한글로 작성합니다

@@ -1,18 +1,39 @@
 "use client";
 
-import { useRef, useEffect, useState, useCallback, Fragment } from "react";
+import { useRef, useEffect, useState, Fragment } from "react";
 import type { StoryData } from "@/types/story";
 import styles from "./DesktopBook.module.css";
 
 /**
  * DesktopBook — page-flip 라이브러리를 사용한 양면 펼침 뷰
  * 데스크톱(768px 초과)에서만 렌더링됩니다.
+ *
+ * 페이지 매핑:
+ *   StoryViewer currentPage (챕터 단위):
+ *     0 = 표지, 1 = Ch1, 2 = Ch2, ..., N+1 = 뒷표지
+ *
+ *   PageFlip 물리 페이지:
+ *     0 = 앞표지 (hard)
+ *     1 = Ch1 일러스트,  2 = Ch1 텍스트
+ *     3 = Ch2 일러스트,  4 = Ch2 텍스트
+ *     ...
+ *     2N+1 = 뒷표지 (hard)
+ *
+ *   변환: chapterPage → pfPage = chapterPage === 0 ? 0
+ *                                : chapterPage > chapters.length ? 2*chapters.length + 1
+ *                                : (chapterPage - 1) * 2 + 1  (일러스트 페이지)
+ *
+ *   역변환: pfPage → chapterPage = pfPage === 0 ? 0
+ *                                  : pfPage >= 2*chapters.length + 1 ? chapters.length + 1
+ *                                  : Math.floor((pfPage - 1) / 2) + 1
  */
 
 interface Props {
   story: StoryData;
+  /** 챕터 단위 페이지 인덱스 (0=표지) */
   currentPage: number;
-  onPageChange: (page: number) => void;
+  /** 챕터 단위 페이지 변경 콜백 */
+  onPageChange: (chapterPage: number) => void;
   activeSentenceIdx: number;
   audioChapter: number;
   audioPlaying: boolean;
@@ -30,6 +51,22 @@ export default function DesktopBook({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pageFlipRef = useRef<any>(null);
   const [ready, setReady] = useState(false);
+  const chaptersLen = story.chapters.length;
+
+  /* ============================
+     챕터 ↔ PageFlip 인덱스 변환
+     ============================ */
+  const chapterToPhysical = (cp: number): number => {
+    if (cp <= 0) return 0;
+    if (cp > chaptersLen) return chaptersLen * 2 + 1;
+    return (cp - 1) * 2 + 1; // 일러스트 페이지
+  };
+
+  const physicalToChapter = (pf: number): number => {
+    if (pf <= 0) return 0;
+    if (pf >= chaptersLen * 2 + 1) return chaptersLen + 1;
+    return Math.floor((pf - 1) / 2) + 1;
+  };
 
   /* PageFlip 초기화 (dynamic import) */
   useEffect(() => {
@@ -75,8 +112,10 @@ export default function DesktopBook({
       const pages = container.querySelectorAll(`.${styles.page}`);
       pf.loadFromHTML(pages as NodeListOf<HTMLElement>);
 
+      /* flip 이벤트 → 챕터 인덱스로 변환하여 부모에 알림 */
       pf.on("flip", (e: { data: number }) => {
-        onPageChange(e.data);
+        const chPage = physicalToChapter(e.data);
+        onPageChange(chPage);
       });
 
       pageFlipRef.current = pf;
@@ -93,22 +132,16 @@ export default function DesktopBook({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* 외부 페이지 변경 시 플립 */
+  /* 외부 페이지 변경 시 → 물리 페이지로 변환하여 플립 */
   useEffect(() => {
     if (!ready || !pageFlipRef.current) return;
-    const pfPage = pageFlipRef.current.getCurrentPageIndex();
-    if (pfPage !== currentPage) {
-      pageFlipRef.current.flip(currentPage);
+    const targetPf = chapterToPhysical(currentPage);
+    const curPf = pageFlipRef.current.getCurrentPageIndex();
+    if (curPf !== targetPf) {
+      pageFlipRef.current.flip(targetPf);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, ready]);
-
-  /* 코너 힌트 애니메이션 */
-  const showHint = useCallback(() => {
-    if (pageFlipRef.current && ready) {
-      pageFlipRef.current.flipNext();
-    }
-  }, [ready]);
-  void showHint; // suppress unused
 
   return (
     <div className={styles.bookContainer}>
@@ -129,17 +162,13 @@ export default function DesktopBook({
         {story.chapters.map((ch, i) => (
           <Fragment key={`ch-${i}`}>
             {/* 일러스트 페이지 (왼쪽) */}
-            <div
-              className={`${styles.page} ${styles.pageIllustration}`}
-            >
+            <div className={`${styles.page} ${styles.pageIllustration}`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={`/${ch.image}`} alt={ch.imageAlt} />
             </div>
 
             {/* 텍스트 페이지 (오른쪽) */}
-            <div
-              className={`${styles.page} ${styles.pageStory}`}
-            >
+            <div className={`${styles.page} ${styles.pageStory}`}>
               <div className={styles.storyWrap}>
                 <div className={styles.storyChapter}>
                   Chapter {ch.chapterNum}

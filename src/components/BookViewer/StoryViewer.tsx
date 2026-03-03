@@ -12,7 +12,8 @@ import styles from "./StoryViewer.module.css";
 
 /**
  * StoryViewer — 메인 동화책 뷰어 컴포넌트
- * Phase 1~4 기능 모두 통합 완료
+ * 모든 기능 통합: 오디오, 하이라이팅, 키보드, 상단바, 진행률, 반응형,
+ * PageFlip, 자동넘김, 이어읽기, 오디오 종료 자동넘김, 접근성
  */
 interface Props {
   story: StoryData;
@@ -35,13 +36,27 @@ export default function StoryViewer({ story }: Props) {
   const totalPages = story.chapters.length + 2; /* +표지 +뒷표지 */
   const [currentPage, setCurrentPage] = useState(0);
 
-  /* === 오디오 플레이어 훅 (프롬프트 1) === */
-  const audio = useAudioPlayer(story.chapters);
+  /* === 오디오 종료 시 자동 다음 챕터 넘김 === */
+  const handleChapterEnd = useCallback(
+    (endedChapterIdx: number) => {
+      /* 다음 챕터가 있으면 자동으로 넘김 */
+      const nextPage = endedChapterIdx + 2; // endedChapterIdx+1 = 다음챕터, +1 = 표지 오프셋
+      if (nextPage < totalPages) {
+        setCurrentPage(nextPage);
+      }
+    },
+    [totalPages],
+  );
 
-  /* === 반응형 분기 (프롬프트 6) === */
+  /* === 오디오 플레이어 훅 === */
+  const audio = useAudioPlayer(story.chapters, {
+    onChapterEnd: handleChapterEnd,
+  });
+
+  /* === 반응형 분기 === */
   const { isMobile } = useResponsive();
 
-  /* === 이어읽기 (프롬프트 10) === */
+  /* === 이어읽기 === */
   const { getSavedPage, clearProgress } = useReadingProgress(currentPage);
   const [showResumeToast, setShowResumeToast] = useState(false);
   const resumePageRef = useRef(0);
@@ -52,14 +67,13 @@ export default function StoryViewer({ story }: Props) {
     if (saved > 0) {
       resumePageRef.current = saved;
       setShowResumeToast(true);
-      /* 5초 후 자동 사라짐 */
       const timer = setTimeout(() => setShowResumeToast(false), 5000);
       return () => clearTimeout(timer);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* === 자동 넘김 (프롬프트 9) === */
+  /* === 자동 넘김 === */
   const [autoPlay, setAutoPlay] = useState(false);
   const [autoSpeed, setAutoSpeed] = useState<AutoSpeed>("normal");
   const autoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -92,12 +106,10 @@ export default function StoryViewer({ story }: Props) {
     };
   }, [autoPlay, autoSpeed, currentPage, totalPages, goNext]);
 
-  /* 자동 넘김 토글 */
   const toggleAutoPlay = useCallback(() => {
     setAutoPlay((v) => !v);
   }, []);
 
-  /* 자동 넘김 속도 순환 */
   const cycleAutoSpeed = useCallback(() => {
     setAutoSpeed((prev) => {
       const idx = AUTO_SPEED_ORDER.indexOf(prev);
@@ -105,7 +117,7 @@ export default function StoryViewer({ story }: Props) {
     });
   }, []);
 
-  /* === 페이지 전환 시 오디오 챕터 전환 (프롬프트 1) === */
+  /* === 페이지 전환 시 오디오 챕터 전환 === */
   useEffect(() => {
     const chIdx =
       currentPage >= 1 && currentPage <= story.chapters.length
@@ -115,17 +127,39 @@ export default function StoryViewer({ story }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
-  /* === 키보드 내비게이션 (프롬프트 3) === */
+  /* === 키보드 내비게이션 + 접근성 단축키 === */
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft") goPrev();
-      else if (e.key === "ArrowRight") goNext();
+      switch (e.key) {
+        case "ArrowLeft":
+          e.preventDefault();
+          goPrev();
+          break;
+        case "ArrowRight":
+          e.preventDefault();
+          goNext();
+          break;
+        case " ":
+          /* 스페이스바로 오디오 재생/정지 */
+          e.preventDefault();
+          audio.toggle();
+          break;
+        case "Home":
+          e.preventDefault();
+          setCurrentPage(0);
+          break;
+        case "End":
+          e.preventDefault();
+          setCurrentPage(totalPages - 1);
+          break;
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [goNext, goPrev]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [goNext, goPrev, totalPages]);
 
-  /* === 문장 하이라이팅 인덱스 계산 (프롬프트 2) === */
+  /* === 문장 하이라이팅 인덱스 계산 === */
   const activeSentenceIdx = useMemo(() => {
     if (!audio.isPlaying || audio.currentChapter < 0) return -1;
     const ch = story.chapters[audio.currentChapter];
@@ -141,7 +175,7 @@ export default function StoryViewer({ story }: Props) {
     story.chapters,
   ]);
 
-  /* 현재 페이지에 해당하는 챕터 인덱스 (-1 = 표지/뒷표지) */
+  /* 현재 페이지에 해당하는 챕터 인덱스 */
   const chapterIdx =
     currentPage >= 1 && currentPage <= story.chapters.length
       ? currentPage - 1
@@ -155,23 +189,52 @@ export default function StoryViewer({ story }: Props) {
     return `${currentPage} / ${story.chapters.length}`;
   };
 
-  /* 이어읽기 핸들러 */
+  /* 접근성: 현재 페이지 설명 (aria-live 용) */
+  const getPageDescription = () => {
+    if (currentPage === 0) return `${story.title} 표지`;
+    if (currentPage === totalPages - 1)
+      return "마지막 페이지. 이야기가 끝났습니다.";
+    if (chapter)
+      return `챕터 ${chapter.chapterNum}: ${chapter.title}. ${story.chapters.length}개 중 ${chapter.chapterNum}번째.`;
+    return "";
+  };
+
   const handleResume = () => {
     setCurrentPage(resumePageRef.current);
     setShowResumeToast(false);
   };
 
-  /* 처음으로 핸들러 */
   const handleRestart = () => {
     setCurrentPage(0);
     clearProgress();
   };
 
   return (
-    <div className={styles.appContainer}>
-      {/* === 이어읽기 토스트 (프롬프트 10) === */}
+    <div
+      className={styles.appContainer}
+      role="application"
+      aria-label={`${story.title} 인터랙티브 동화책`}
+    >
+      {/* === 접근성: 스크린리더용 라이브 리전 === */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {getPageDescription()}
+      </div>
+
+      {/* === 접근성: 키보드 단축키 설명 (스크린리더 전용) === */}
+      <div className="sr-only" role="note" aria-label="키보드 단축키">
+        좌우 화살표로 페이지를 넘길 수 있습니다. 스페이스바로 오디오를
+        재생하거나 정지할 수 있습니다. Home 키는 처음으로, End 키는 마지막
+        페이지로 이동합니다.
+      </div>
+
+      {/* === 이어읽기 토스트 === */}
       {showResumeToast && (
-        <div className={styles.resumeToast}>
+        <div className={styles.resumeToast} role="alert">
           📖 이전에 읽던 곳이 있어요!
           <button className={styles.resumeToastBtn} onClick={handleResume}>
             이어서 읽기
@@ -179,22 +242,22 @@ export default function StoryViewer({ story }: Props) {
           <button
             className={styles.resumeToastClose}
             onClick={() => setShowResumeToast(false)}
+            aria-label="알림 닫기"
           >
             ✕
           </button>
         </div>
       )}
 
-      {/* === 상단 바 + 읽기 진행률 (프롬프트 4, 5) === */}
+      {/* === 상단 바 + 읽기 진행률 === */}
       <TopBar
         title={story.title}
         progress={totalPages > 1 ? currentPage / (totalPages - 1) : 0}
       />
 
       {/* === 책 영역 === */}
-      <div className={styles.bookArea}>
+      <main className={styles.bookArea} aria-label="동화책 내용">
         {!isMobile ? (
-          /* 데스크톱: PageFlip 양면 펼침 (프롬프트 7) */
           <DesktopBook
             story={story}
             currentPage={currentPage}
@@ -204,29 +267,39 @@ export default function StoryViewer({ story }: Props) {
             audioPlaying={audio.isPlaying}
           />
         ) : (
-          /* 모바일: 카드 뷰 */
           <div className={styles.bookStage}>
             {currentPage === 0 && (
-              <div className={styles.coverPage}>
+              <div
+                className={styles.coverPage}
+                role="img"
+                aria-label={`${story.title} 표지`}
+              >
                 <div className={styles.coverTitle}>{story.title}</div>
-                <div className={styles.coverDecoration} />
+                <div className={styles.coverDecoration} aria-hidden="true" />
                 <div className={styles.coverSubtitle}>{story.subtitle}</div>
               </div>
             )}
 
             {chapter && (
-              <div className={styles.storyCard}>
+              <article
+                className={styles.storyCard}
+                aria-label={`챕터 ${chapter.chapterNum}: ${chapter.title}`}
+              >
                 <div className={styles.imgSection}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={`/${chapter.image}`} alt={chapter.imageAlt} />
                 </div>
                 <div className={styles.textSection}>
-                  <div className={styles.storyChapter}>
+                  <div className={styles.storyChapter} aria-hidden="true">
                     Chapter {chapter.chapterNum}
                   </div>
-                  <h3 className={styles.storyTitle}>{chapter.title}</h3>
-                  <div className={styles.storyDivider} />
-                  <div className={styles.storyBody}>
+                  <h2 className={styles.storyTitle}>{chapter.title}</h2>
+                  <div className={styles.storyDivider} aria-hidden="true" />
+                  <div
+                    className={styles.storyBody}
+                    role="region"
+                    aria-label="이야기 내용"
+                  >
                     {chapter.sentences.map((s, i) => {
                       const isActive =
                         chapterIdx === audio.currentChapter &&
@@ -239,80 +312,93 @@ export default function StoryViewer({ story }: Props) {
                         <span
                           key={i}
                           className={`${styles.sentence} ${isActive ? styles.active : ""} ${isRead ? styles.read : ""}`}
+                          aria-current={isActive ? "true" : undefined}
                         >
                           {s.text}
                         </span>
                       );
                     })}
                   </div>
-                  <div className={styles.pageNumber}>
+                  <div className={styles.pageNumber} aria-hidden="true">
                     {chapter.chapterNum} / {story.chapters.length}
                   </div>
                 </div>
-              </div>
+              </article>
             )}
 
             {currentPage === totalPages - 1 && (
-              <div className={styles.coverPage}>
+              <div
+                className={styles.coverPage}
+                role="img"
+                aria-label="이야기 끝"
+              >
                 <div className={styles.coverTitle}>끝 ✨</div>
-                <div className={styles.coverDecoration} />
+                <div className={styles.coverDecoration} aria-hidden="true" />
                 <div className={styles.coverSubtitle}>
                   Powered by AI Vibe Coding
                 </div>
-                {/* 처음으로 버튼 (프롬프트 10) */}
-                <button className={styles.restartBtn} onClick={handleRestart}>
+                <button
+                  className={styles.restartBtn}
+                  onClick={handleRestart}
+                  aria-label="처음부터 다시 읽기"
+                >
                   🏠 처음으로
                 </button>
               </div>
             )}
           </div>
         )}
-      </div>
+      </main>
 
       {/* === 하단 네비게이션 === */}
-      <nav className={styles.bottomNav}>
+      <nav className={styles.bottomNav} aria-label="페이지 내비게이션">
         <button
           className={`${styles.navBtn} ${styles.navBtnPrev}`}
           onClick={goPrev}
           disabled={currentPage === 0}
-          aria-label="이전 페이지"
+          aria-label={`이전 ${currentPage > 1 ? `챕터 ${currentPage - 1}` : "표지"}`}
         >
           ◀ 이전
         </button>
 
-        {/* 자동 넘김 버튼 (프롬프트 9) */}
         <button
           className={`${styles.navBtn} ${styles.navBtnAuto} ${autoPlay ? styles.navBtnAutoActive : ""}`}
           onClick={toggleAutoPlay}
           aria-label={autoPlay ? "자동 넘김 정지" : "자동 넘김 시작"}
+          aria-pressed={autoPlay}
         >
           {autoPlay ? "⏹ 정지" : "▶ 자동"}
         </button>
 
-        {/* 자동 넘김 속도 (프롬프트 9) */}
         {autoPlay && (
           <button
             className={`${styles.navBtn} ${styles.navBtnSpeed}`}
             onClick={cycleAutoSpeed}
-            aria-label="자동 넘김 속도 변경"
+            aria-label={`자동 넘김 속도: ${AUTO_SPEED_LABELS[autoSpeed]}`}
           >
             {AUTO_SPEED_LABELS[autoSpeed]}
           </button>
         )}
 
-        <span className={styles.pageIndicator}>{getIndicatorText()}</span>
+        <span
+          className={styles.pageIndicator}
+          role="status"
+          aria-label={`현재 위치: ${getIndicatorText()}`}
+        >
+          {getIndicatorText()}
+        </span>
 
         <button
           className={`${styles.navBtn} ${styles.navBtnNext}`}
           onClick={goNext}
           disabled={currentPage === totalPages - 1}
-          aria-label="다음 페이지"
+          aria-label={`다음 ${currentPage < story.chapters.length ? `챕터 ${currentPage + 1}` : "끝"}`}
         >
           다음 ▶
         </button>
       </nav>
 
-      {/* === 오디오 플레이어 (프롬프트 1) === */}
+      {/* === 오디오 플레이어 === */}
       <AudioPlayer
         isPlaying={audio.isPlaying}
         currentTime={audio.currentTime}

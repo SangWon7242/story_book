@@ -19,6 +19,11 @@ interface AudioState {
   currentChapter: number; // -1이면 재생 중인 챕터 없음
 }
 
+interface UseAudioPlayerOptions {
+  /** 챕터 오디오가 끝났을 때 호출되는 콜백 (chapterIdx 전달) */
+  onChapterEnd?: (chapterIdx: number) => void;
+}
+
 interface UseAudioPlayerReturn extends AudioState {
   play: (chapterIdx: number) => void;
   pause: () => void;
@@ -29,7 +34,11 @@ interface UseAudioPlayerReturn extends AudioState {
   switchChapter: (chapterIdx: number) => void;
 }
 
-export function useAudioPlayer(chapters: Chapter[]): UseAudioPlayerReturn {
+export function useAudioPlayer(
+  chapters: Chapter[],
+  options?: UseAudioPlayerOptions,
+): UseAudioPlayerReturn {
+  const onChapterEndRef = useRef(options?.onChapterEnd);
   const audioMapRef = useRef<Map<number, HTMLAudioElement>>(new Map());
   const [state, setState] = useState<AudioState>({
     isPlaying: false,
@@ -39,6 +48,11 @@ export function useAudioPlayer(chapters: Chapter[]): UseAudioPlayerReturn {
     volume: 0.7,
     currentChapter: -1,
   });
+
+  /* onChapterEnd 콜백 참조 최신화 */
+  useEffect(() => {
+    onChapterEndRef.current = options?.onChapterEnd;
+  }, [options?.onChapterEnd]);
 
   /* 챕터별 Audio 객체 초기화 */
   useEffect(() => {
@@ -86,11 +100,16 @@ export function useAudioPlayer(chapters: Chapter[]): UseAudioPlayerReturn {
     };
 
     const onEnded = () => {
+      const endedChapter = state.currentChapter;
       setState((prev) => ({
         ...prev,
         isPlaying: false,
         progress: 1,
       }));
+      /* 부모에게 챕터 종료 알림 (자동 넘김용) */
+      if (onChapterEndRef.current && endedChapter >= 0) {
+        onChapterEndRef.current(endedChapter);
+      }
     };
 
     audio.addEventListener("timeupdate", onTimeUpdate);
