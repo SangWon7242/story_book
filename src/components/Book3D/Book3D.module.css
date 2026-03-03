@@ -1,0 +1,406 @@
+/* ============================================================
+   3D 하드커버 책 — CSS 3D Transform 스타일
+   
+   [구조]
+   figure.book
+     ├── ul.hardcover_front > li  (앞표지 + 두께: ::before, ::after)
+     ├── ul.page × N > li         (내부 페이지들)
+     ├── ul.hardcover_back > li   (뒤표지 + 두께: ::before, ::after)
+     └── ul.book_spine > li       (책등)
+   
+   [핵심 3D 기법]
+   1. perspective: 3D 원근감 생성
+   2. preserve-3d: 자식 요소들이 3D 공간 유지
+   3. rotateY() + translateZ(): 각 파트 배치
+   4. ::before/::after: 표지 두께(상하좌우 면) 표현
+   ============================================================ */
+
+/* ============================
+   1. 책 컨테이너 (3D 공간)
+   ============================ */
+.book {
+  /* 3D 원근감 — 낮을수록 극적인 효과 */
+  perspective: 1000px;
+  /* 자식 요소들이 3D 공간에서 렌더링 */
+  transform-style: preserve-3d;
+
+  position: relative;
+  width: 220px;
+  height: 300px;
+  margin: 0;
+  cursor: pointer;
+
+  /* 부드러운 전체 전환 */
+  transition: transform 0.5s ease;
+}
+
+/* 책 전체 호버 시 살짝 들어올림 */
+.book:hover {
+  transform: translateY(-8px);
+}
+
+/* 비활성 상태 (준비 중) */
+.disabled {
+  cursor: not-allowed;
+  filter: brightness(0.55) grayscale(0.4);
+}
+.disabled:hover {
+  transform: none;
+}
+
+/* 모든 내부 리스트 초기화 */
+.book ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  /* 3D 공간 유지 (필수!) */
+  transform-style: preserve-3d;
+}
+
+.book ul li {
+  /* 모든 요소를 같은 위치에 겹침 */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ============================
+   2. 앞표지 (Front Cover)
+   - 핵심: transform-origin을 왼쪽에 두어
+     hover 시 왼쪽을 축으로 회전(열림)
+   ============================ */
+.hardcover_front {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* 3D 유지 */
+  transform-style: preserve-3d;
+  /* 왼쪽 모서리를 회전축으로 설정 */
+  transform-origin: 0% 50%;
+  /* 초기: 살짝 기울어진 닫힌 상태 */
+  transform: rotateY(-2deg) translateZ(6px);
+  /* 부드러운 열림 전환 */
+  transition: all 0.8s ease;
+  z-index: 10;
+}
+
+.hardcover_front li {
+  border-radius: 0 4px 4px 0;
+  overflow: hidden;
+  background: linear-gradient(135deg, #2a2a4e 0%, #1e1e36 100%);
+  /* 빛 반사 효과 */
+  box-shadow:
+    0 3px 16px rgba(0, 0, 0, 0.4),
+    inset 0 0 32px rgba(255, 255, 255, 0.04);
+}
+
+/* --- 표지 이미지 --- */
+.coverImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* --- 이미지 없을 때 플레이스홀더 --- */
+.placeholderCover {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2f4f4f 0%, #1a3333 60%, #2a4a4a 100%);
+}
+
+.placeholderEmoji {
+  font-size: 3.5rem;
+  opacity: 0.4;
+}
+
+/* --- 제목 오버레이 --- */
+.coverOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px 14px 14px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+  pointer-events: none;
+}
+
+.coverTitle {
+  font-family: var(--font-child, "Jua", sans-serif);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.3;
+  margin: 0;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+
+.coverSubtitle {
+  font-family: var(--font-child, "Jua", sans-serif);
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 4px 0 0;
+  line-height: 1.3;
+}
+
+/* --- 배지 (준비 중 등) --- */
+.badge {
+  position: absolute;
+  top: 12px;
+  right: -4px;
+  background: linear-gradient(135deg, #ff6b6b, #e53e3e);
+  color: #fff;
+  font-family: var(--font-child, "Jua", sans-serif);
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 4px 0 0 4px;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+  z-index: 5;
+}
+
+/* ============================
+   3. 앞표지 두께 (Pseudo-elements)
+   - ::before = 우측 옆면 (세로 두께)
+   - ::after  = 하단 밑면 (가로 두께)
+   ============================ */
+
+/* --- 앞표지 우측 두께 (책등 쪽 반대편) --- */
+.hardcover_front li::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  /* 두께 크기 */
+  width: 12px;
+  height: 100%;
+  /* 우측 면을 90도 회전시켜 '옆면'으로 만듦 */
+  transform: rotateY(90deg) translateZ(208px) translateX(-6px);
+  /* 어두운 가죽 질감 그라디언트 */
+  background: linear-gradient(180deg, #3a3a5e 0%, #2a2a4e 40%, #1e1e36 100%);
+}
+
+/* --- 앞표지 하단 두께 --- */
+.hardcover_front li::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 12px;
+  /* 하단 면을 -90도 회전시켜 '밑면'으로 만듦 */
+  transform: rotateX(-90deg) translateZ(294px) translateY(6px);
+  background: linear-gradient(90deg, #242444 0%, #1e1e36 50%, #181830 100%);
+}
+
+/* ============================
+   4. 뒤표지 (Back Cover)
+   - 앞표지 뒤에 위치 (translateZ 음수)
+   ============================ */
+.hardcover_back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transform-origin: 0% 50%;
+  /* 뒤표지는 약간 뒤쪽에 배치 */
+  transform: translateZ(-6px);
+  z-index: 1;
+}
+
+.hardcover_back li {
+  border-radius: 0 4px 4px 0;
+  background: linear-gradient(135deg, #1a1a30 0%, #14142a 100%);
+  box-shadow:
+    -2px 2px 12px rgba(0, 0, 0, 0.5),
+    inset 0 0 30px rgba(0, 0, 0, 0.2);
+}
+
+/* --- 뒤표지 우측 두께 --- */
+.hardcover_back li::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 12px;
+  height: 100%;
+  transform: rotateY(90deg) translateZ(208px) translateX(-6px);
+  background: linear-gradient(180deg, #28284a 0%, #1a1a36 50%, #141428 100%);
+}
+
+/* --- 뒤표지 하단 두께 --- */
+.hardcover_back li::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 12px;
+  transform: rotateX(-90deg) translateZ(294px) translateY(6px);
+  background: linear-gradient(90deg, #1e1e38 0%, #161630 50%, #121228 100%);
+}
+
+/* ============================
+   5. 내부 페이지 (Pages)
+   - 크림색 종이 질감
+   - 각 페이지를 약간 다른 Z 위치에 배치
+   ============================ */
+.page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transform-origin: 0% 50%;
+  transition: all 0.8s ease;
+  z-index: 5;
+}
+
+.page li {
+  border-radius: 0 3px 3px 0;
+  /* 크림색 종이 질감 그라디언트 */
+  background: linear-gradient(
+    160deg,
+    #faf5e4 0%,
+    /* 밝은 크림 */ #f5f0d8 30%,
+    /* 따뜻한 아이보리 */ #f0ebd0 60%,
+    /* 약간 누런 톤 */ #ebe5c8 100% /* 빈티지 느낌 */
+  );
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+/* --- 페이지 번호 --- */
+.pageFront {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 12px 16px;
+}
+
+.pageNumber {
+  font-family: var(--font-child, "Jua", sans-serif);
+  font-size: 0.65rem;
+  color: rgba(100, 90, 70, 0.35);
+}
+
+/* --- 페이지 Z축 위치로 두께감 표현 --- */
+.page:nth-child(2) {
+  transform: translateZ(4px);
+}
+.page:nth-child(3) {
+  transform: translateZ(3px);
+}
+.page:nth-child(4) {
+  transform: translateZ(2px);
+}
+.page:nth-child(5) {
+  transform: translateZ(1px);
+}
+.page:nth-child(6) {
+  transform: translateZ(0px);
+}
+.page:nth-child(7) {
+  transform: translateZ(-1px);
+}
+.page:nth-child(8) {
+  transform: translateZ(-2px);
+}
+
+/* ============================
+   7. 호버 애니메이션
+   - 앞표지: -140deg 로 크게 열림
+   - 페이지: 부채꼴로 펼침
+   ============================ */
+
+/* --- 앞표지 열림 --- */
+.book:not(.disabled):hover .hardcover_front {
+  transform: rotateY(-112deg) translateZ(6px);
+}
+
+/* --- 페이지 부채꼴 펼침 (각 페이지마다 다른 각도) --- */
+.book:not(.disabled):hover .page:nth-child(2) {
+  transform: rotateY(-18deg) translateZ(4px);
+}
+.book:not(.disabled):hover .page:nth-child(3) {
+  transform: rotateY(-24deg) translateZ(3px);
+}
+.book:not(.disabled):hover .page:nth-child(4) {
+  transform: rotateY(-30deg) translateZ(2px);
+}
+.book:not(.disabled):hover .page:nth-child(5) {
+  transform: rotateY(-36deg) translateZ(1px);
+}
+.book:not(.disabled):hover .page:nth-child(6) {
+  transform: rotateY(-41deg) translateZ(0px);
+}
+.book:not(.disabled):hover .page:nth-child(7) {
+  transform: rotateY(-46deg) translateZ(-1px);
+}
+.book:not(.disabled):hover .page:nth-child(8) {
+  transform: rotateY(-50deg) translateZ(-2px);
+}
+
+/* --- 포커스 접근성 (키보드 탐색) --- */
+.book:focus-visible {
+  outline: 3px solid var(--antique-gold, #c5b358);
+  outline-offset: 8px;
+  border-radius: 4px;
+}
+
+/* ============================
+   8. 반응형
+   ============================ */
+@media (max-width: 768px) {
+  .book {
+    width: 170px;
+    height: 230px;
+  }
+  .hardcover_front li::before,
+  .hardcover_back li::before {
+    width: 10px;
+    transform: rotateY(90deg) translateZ(160px) translateX(-5px);
+  }
+  .hardcover_front li::after,
+  .hardcover_back li::after {
+    height: 10px;
+    transform: rotateX(-90deg) translateZ(225px) translateY(5px);
+  }
+  .coverTitle {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .book {
+    width: 140px;
+    height: 190px;
+  }
+  .hardcover_front li::before,
+  .hardcover_back li::before {
+    width: 8px;
+    transform: rotateY(90deg) translateZ(132px) translateX(-4px);
+  }
+  .hardcover_front li::after,
+  .hardcover_back li::after {
+    height: 8px;
+    transform: rotateX(-90deg) translateZ(186px) translateY(4px);
+  }
+  .coverTitle {
+    font-size: 0.7rem;
+  }
+  .coverSubtitle {
+    display: none;
+  }
+}

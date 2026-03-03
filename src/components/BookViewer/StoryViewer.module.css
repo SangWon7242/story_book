@@ -57,7 +57,7 @@
   overflow: hidden !important;
   position: relative;
   min-height: 0;
-  padding: 8px;
+  padding: 8px 8px 86px;
 }
 
 .bookStage {
@@ -276,7 +276,11 @@
 
 /* === 하단 네비게이션 === */
 .bottomNav {
-  flex-shrink: 0;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -284,7 +288,8 @@
   padding: 8px 20px 10px;
   background: rgba(0, 0, 0, 0.25);
   backdrop-filter: blur(8px);
-  z-index: 50;
+  border-top: 1px solid rgba(197, 179, 88, 0.18);
+  z-index: 120;
 }
 
 .navBtn {
@@ -362,7 +367,7 @@
   }
 
   .bookArea {
-    padding: 4px;
+    padding: 4px 4px 78px;
   }
 
   .bottomNav {
@@ -393,7 +398,7 @@
   }
 
   .bookArea {
-    padding: 2px;
+    padding: 2px 2px 72px;
   }
 
   .bottomNav {

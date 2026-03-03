@@ -4,7 +4,7 @@
 
 .audioPlayer {
   position: fixed;
-  bottom: 68px;
+  bottom: 92px;
   right: 16px;
   z-index: 1000;
   display: flex;
@@ -195,7 +195,7 @@
 /* 반응형 */
 @media (max-width: 768px) {
   .audioPlayer {
-    bottom: 60px;
+    bottom: 82px;
     right: 8px;
   }
   .toggleBtn {
@@ -210,7 +210,7 @@
 
 @media (max-width: 480px) {
   .audioPlayer {
-    bottom: 54px;
+    bottom: 76px;
     right: 6px;
   }
   .toggleBtn {

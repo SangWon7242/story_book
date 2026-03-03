@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import styles from "./library.module.css";
+import Book3D from "@/components/Book3D/Book3D";
 
 /**
- * 스토리 라이브러리 — 3D 책장에서 동화를 선택하는 화면
+ * 스토리 라이브러리 — 3D 하드커버 책장에서 동화를 선택하는 화면
+ * Book3D 컴포넌트를 활용한 인터랙티브 3D 책 UI
  */
 
 interface StoryMeta {
@@ -19,7 +20,7 @@ interface StoryMeta {
   style: string;
 }
 
-/* 더미 라이브러리 데이터 (향후 API 확장 가능) */
+/* 라이브러리 데이터 (향후 API 확장 가능) */
 const STORIES: StoryMeta[] = [
   {
     id: "story1",
@@ -53,7 +54,7 @@ const STORIES: StoryMeta[] = [
   },
 ];
 
-/* SSR-safe 마운트 감지 (useEffect setState 없이) */
+/* SSR-safe 마운트 감지 */
 const subscribe = () => () => {};
 const getSnapshot = () => true;
 const getServerSnapshot = () => false;
@@ -65,107 +66,179 @@ export default function LibraryPage() {
     getSnapshot,
     getServerSnapshot,
   );
-  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
-  const handleSelectStory = (storyId: string, available: boolean) => {
-    if (!available) return;
+  const handleSelectStory = (storyId: string) => {
     router.push(`/?story=${storyId}`);
   };
 
   if (!mounted) return null;
 
   return (
-    <div className={styles.libraryContainer}>
-      {/* 배경 장식 */}
-      <div className={styles.bgGlow} aria-hidden="true" />
+    <div
+      className="min-h-screen w-full relative flex flex-col overflow-y-auto overflow-x-hidden"
+      style={{
+        background:
+          "linear-gradient(160deg, #1b1b2f 0%, #162447 60%, #1f4068 100%)",
+      }}
+    >
+      {/* 배경 글로우 */}
+      <div
+        className="fixed top-[-200px] left-1/2 -translate-x-1/2 w-[600px] h-[600px] pointer-events-none z-0"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(197,179,88,0.08) 0%, transparent 70%)",
+        }}
+        aria-hidden="true"
+      />
 
       {/* 헤더 */}
-      <header className={styles.header}>
-        <h1 className={styles.headerTitle}>📚 동화 책장</h1>
-        <p className={styles.headerSub}>좋아하는 이야기를 골라보세요!</p>
+      <header className="text-center pt-16 pb-6 px-5 relative z-10 animate-[libFadeIn_0.6s_ease-out]">
+        <h1
+          className="text-[clamp(1.8rem,4vw,3rem)] mb-2"
+          style={{
+            fontFamily: 'var(--font-child, "Jua", sans-serif)',
+            color: "#c5b358",
+            textShadow: "0 2px 12px rgba(197,179,88,0.3)",
+          }}
+        >
+          📚 동화 책장
+        </h1>
+        <p
+          className="text-[clamp(0.9rem,2vw,1.15rem)]"
+          style={{
+            fontFamily: 'var(--font-child, "Jua", sans-serif)',
+            color: "rgba(255,255,255,0.6)",
+          }}
+        >
+          마우스를 올려 책을 열어보세요!
+        </p>
       </header>
 
       {/* 3D 책장 */}
-      <main className={styles.shelf} role="list" aria-label="동화 목록">
-        {STORIES.map((story, idx) => {
-          const available = story.chaptersCount > 0;
-          const isHovered = hoveredIdx === idx;
-
-          return (
-            <div
-              key={story.id}
-              className={`${styles.bookSlot} ${!available ? styles.comingSoon : ""}`}
-              role="listitem"
-              style={{ animationDelay: `${idx * 0.12}s` }}
-            >
-              <button
-                className={styles.book3d}
-                onClick={() => handleSelectStory(story.id, available)}
-                onMouseEnter={() => setHoveredIdx(idx)}
-                onMouseLeave={() => setHoveredIdx(null)}
-                onFocus={() => setHoveredIdx(idx)}
-                onBlur={() => setHoveredIdx(null)}
-                aria-label={`${story.title}${available ? "" : " (준비 중)"}`}
-                disabled={!available}
+      <main className="relative z-10 flex-1 w-full px-6 py-10 flex items-center justify-center overflow-x-hidden">
+        <div
+          className="
+            flex flex-wrap justify-center items-center content-center gap-y-16 gap-x-14
+            w-full max-w-6xl mx-auto pt-6 pb-8
+            max-[900px]:flex-col max-[900px]:items-center max-[900px]:gap-y-14 max-[900px]:max-w-md
+          "
+          role="list"
+          aria-label="동화 목록"
+        >
+          {STORIES.map((story) => {
+            const available = story.chaptersCount > 0;
+            return (
+              <div
+                key={story.id}
+                role="listitem"
+                className="
+                  relative group overflow-visible flex items-start justify-center self-start
+                  w-auto max-[900px]:w-full
+                "
               >
-                {/* 책 앞면 */}
-                <div className={styles.bookFront}>
-                  {story.coverImage ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={story.coverImage}
-                      alt={story.title}
-                      className={styles.coverImg}
-                    />
-                  ) : (
-                    <div className={styles.placeholderCover}>
-                      <span className={styles.placeholderIcon}>📖</span>
-                    </div>
-                  )}
-                  <div className={styles.bookTitleOverlay}>
-                    <span className={styles.bookTitle}>{story.title}</span>
+                <Book3D
+                  title={story.title}
+                  subtitle={story.subtitle}
+                  coverImage={story.coverImage || undefined}
+                  pageCount={available ? story.chaptersCount : 5}
+                  onClick={() => handleSelectStory(story.id)}
+                  disabled={!available}
+                  badge={!available ? "준비 중" : undefined}
+                />
+
+                {/* 호버 메타 카드 (Tailwind) */}
+                <div
+                  className="
+                  absolute bottom-full mb-8 w-72
+                  max-w-[calc(100vw-2rem)] whitespace-normal break-words
+                  rounded-xl !p-6 z-50
+                  opacity-0 invisible group-hover:opacity-100 group-hover:visible
+                  transition-all duration-300 ease-out
+                  translate-y-2 
+                  pointer-events-none
+                  max-[520px]:hidden
+                  max-[720px]:bottom-auto max-[720px]:right-[-120px] max-[720px]:top-1/2
+                  max-[720px]:translate-x-0 max-[720px]:-translate-y-1/2
+                  max-[720px]:mb-0 max-[720px]:ml-4
+                  max-[720px]:w-[min(18rem,calc(100vw-14rem))]
+                "
+                  style={{
+                    background: "linear-gradient(135deg, #2f4f4f, #1a3333)",
+                    border: "1px solid rgba(197,179,88,0.3)",
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                  }}
+                  role="tooltip"
+                >
+                  <h3
+                    className="text-base mb-1"
+                    style={{
+                      fontFamily: 'var(--font-child, "Jua", sans-serif)',
+                      color: "#c5b358",
+                    }}
+                  >
+                    {story.title}
+                  </h3>
+                  <p
+                    className="text-xs mb-3 leading-relaxed"
+                    style={{
+                      fontFamily: 'var(--font-child, "Jua", sans-serif)',
+                      color: "rgba(255,255,255,0.6)",
+                    }}
+                  >
+                    {story.subtitle}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {[
+                      `🎨 ${story.theme}`,
+                      `🤖 ${story.protagonist}`,
+                      `✨ ${story.style}`,
+                      ...(available
+                        ? [`📖 ${story.chaptersCount}개 챕터`]
+                        : []),
+                    ].map((tag) => (
+                      <span
+                        key={tag}
+                        className="text-[0.65rem] px-2 py-0.5 rounded-md"
+                        style={{
+                          fontFamily: 'var(--font-child, "Jua", sans-serif)',
+                          color: "rgba(255,255,255,0.7)",
+                          background: "rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
                   </div>
-                  {!available && (
-                    <div className={styles.comingSoonBadge}>준비 중</div>
-                  )}
-                </div>
-
-                {/* 책 옆면 (두께) */}
-                <div className={styles.bookSpine} aria-hidden="true">
-                  <span className={styles.spineTitle}>{story.title}</span>
-                </div>
-
-                {/* 책 윗면 */}
-                <div className={styles.bookTop} aria-hidden="true" />
-              </button>
-
-              {/* 호버 메타 정보 */}
-              {isHovered && (
-                <div className={styles.metaTooltip} role="tooltip">
-                  <h3 className={styles.metaTitle}>{story.title}</h3>
-                  <p className={styles.metaSub}>{story.subtitle}</p>
-                  <div className={styles.metaTags}>
-                    <span>🎨 {story.theme}</span>
-                    <span>🤖 {story.protagonist}</span>
-                    <span>✨ {story.style}</span>
-                    {available && <span>📖 {story.chaptersCount}개 챕터</span>}
+                  <div
+                    className="text-sm text-center font-bold !mt-3"
+                    style={{
+                      fontFamily: 'var(--font-child, "Jua", sans-serif)',
+                      color: "#c5b358",
+                    }}
+                  >
+                    {available ? "클릭하여 읽기 시작!" : "곧 만나요!"}
                   </div>
-                  {available ? (
-                    <div className={styles.metaCta}>클릭하여 읽기 시작!</div>
-                  ) : (
-                    <div className={styles.metaCta}>곧 만나요!</div>
-                  )}
                 </div>
-              )}
-            </div>
-          );
-        })}
+              </div>
+            );
+          })}
+        </div>
       </main>
 
-      {/* 하단 장식 */}
-      <footer className={styles.footer} aria-hidden="true">
-        <div className={styles.shelfEdge} />
-        <p className={styles.footerText}>Powered by AI Vibe Coding ✨</p>
+      {/* 하단 */}
+      <footer
+        className="w-full text-center pb-5 relative z-10"
+        aria-hidden="true"
+      >
+        <p
+          className="text-xs"
+          style={{
+            fontFamily: 'var(--font-child, "Jua", sans-serif)',
+            color: "rgba(255,255,255,0.3)",
+          }}
+        >
+          Powered by AI Vibe Coding ✨
+        </p>
       </footer>
     </div>
   );

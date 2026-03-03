@@ -49,6 +49,13 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.topBarTitle:hover {
+  opacity: 0.8;
 }
 
 .topBarTitle h1 {

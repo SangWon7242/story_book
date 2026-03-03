@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import styles from "./TopBar.module.css";
 
 /**
@@ -69,9 +70,13 @@ export default function TopBar({ title, progress }: Props) {
       {/* === 상단 바 === */}
       <div className={styles.topBar}>
         <div className={styles.topBarLeft}>
-          <div className={styles.topBarTitle}>
+          <Link
+            href="/library"
+            className={styles.topBarTitle}
+            aria-label="동화 책장으로 돌아가기"
+          >
             <h1>📖 {title}</h1>
-          </div>
+          </Link>
         </div>
 
         <div className={styles.topBarRight}>

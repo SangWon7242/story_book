@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import { useRouter } from "next/navigation";
 import type { StoryData } from "@/types/story";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useResponsive } from "@/hooks/useResponsive";
@@ -33,6 +34,7 @@ const AUTO_SPEED_LABELS: Record<AutoSpeed, string> = {
 const AUTO_SPEED_ORDER: AutoSpeed[] = ["normal", "fast", "slow"];
 
 export default function StoryViewer({ story }: Props) {
+  const router = useRouter();
   const totalPages = story.chapters.length + 2; /* +표지 +뒷표지 */
   const [currentPage, setCurrentPage] = useState(0);
 
@@ -204,9 +206,11 @@ export default function StoryViewer({ story }: Props) {
     setShowResumeToast(false);
   };
 
+  /* 처음으로(라이브러리) 핸들러 */
   const handleRestart = () => {
-    setCurrentPage(0);
+    audio.stopAll();
     clearProgress();
+    router.push("/library");
   };
 
   return (
