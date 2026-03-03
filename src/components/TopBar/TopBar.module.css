@@ -1,0 +1,225 @@
+/* ============================================
+   TopBar + 읽기 진행률 바 스타일
+   ============================================ */
+
+/* 읽기 진행률 바 */
+.progressBar {
+  width: 100%;
+  height: 3px;
+  background: rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+  z-index: 60;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--antique-gold), #e0d06a);
+  border-radius: 0 2px 2px 0;
+  transition: width 0.3s ease;
+}
+
+/* 상단 바 */
+.topBar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 24px;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(197, 179, 88, 0.15);
+  z-index: 50;
+  min-height: 42px;
+}
+
+.topBarLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topBarRight {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.topBarTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.topBarTitle:hover {
+  opacity: 0.8;
+}
+
+.topBarTitle h1 {
+  font-family: var(--font-title);
+  font-size: clamp(0.9rem, 1.8vw, 1.3rem);
+  font-weight: 700;
+  color: var(--antique-gold);
+  white-space: nowrap;
+}
+
+/* 메타 정보 */
+.topBarMeta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.metaItem {
+  text-align: center;
+}
+
+.metaLabel {
+  display: block;
+  font-size: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--antique-gold);
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.metaValue {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.65);
+  margin-top: 1px;
+}
+
+.metaDivider {
+  width: 1px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* 설정 도구 */
+.settingsToolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.toolbarBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-family: var(--font-child);
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 30px;
+}
+
+.toolbarBtn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--antique-gold);
+  border-color: rgba(197, 179, 88, 0.3);
+}
+
+.toolbarBtn svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+/* 글자 크기 버튼 그룹 */
+.fontSizeGroup {
+  display: flex;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 2px;
+}
+
+.fontBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  padding: 3px 7px;
+  min-height: 26px;
+  min-width: 26px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: var(--font-child);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.fontBtn[data-size="small"] {
+  font-size: 0.55rem;
+}
+.fontBtn[data-size="medium"] {
+  font-size: 0.7rem;
+}
+.fontBtn[data-size="large"] {
+  font-size: 0.85rem;
+}
+
+.fontBtnActive {
+  background: rgba(197, 179, 88, 0.25);
+  color: var(--antique-gold);
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .topBar {
+    padding: 4px 10px;
+    min-height: 34px;
+  }
+  .topBarTitle h1 {
+    font-size: 0.85rem;
+  }
+  .topBarMeta {
+    gap: 8px;
+  }
+  .metaLabel {
+    font-size: 0.45rem;
+  }
+  .metaValue {
+    font-size: 0.55rem;
+  }
+  .metaDivider {
+    height: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .topBar {
+    padding: 3px 8px;
+    min-height: 30px;
+  }
+  .topBarTitle h1 {
+    font-size: 0.78rem;
+  }
+  .topBarMeta {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .topBar {
+    padding: 2px 6px;
+    min-height: 26px;
+  }
+  .topBarTitle h1 {
+    font-size: 0.68rem;
+  }
+}

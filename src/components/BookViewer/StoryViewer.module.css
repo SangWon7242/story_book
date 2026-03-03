@@ -1,0 +1,619 @@
+/* ============================================
+   StoryViewer 컴포넌트 스타일
+   기존 style.css에서 핵심 레이아웃만 추출
+   ============================================ */
+
+/* === 앱 컨테이너 === */
+.appContainer {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden !important;
+  background: linear-gradient(
+    160deg,
+    var(--bg-gradient-start) 0%,
+    var(--bg-gradient-mid) 60%,
+    var(--bg-gradient-end) 100%
+  );
+  position: relative;
+}
+
+/* === 상단 바 === */
+.topBar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 24px;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(197, 179, 88, 0.15);
+  z-index: 50;
+  min-height: 42px;
+}
+
+.topBarTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topBarTitle h1 {
+  font-family: var(--font-title);
+  font-size: clamp(0.9rem, 1.8vw, 1.3rem);
+  font-weight: 700;
+  color: var(--antique-gold);
+  white-space: nowrap;
+}
+
+/* === 책 영역 === */
+.bookArea {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden !important;
+  position: relative;
+  min-height: 0;
+  padding: 8px 8px 86px;
+}
+
+.bookStage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden !important;
+}
+
+/* === 표지 페이지 === */
+.coverPage {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(145deg, #2f4f4f 0%, #1a3333 50%, #0d1f1f 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  text-align: center;
+  color: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+
+.coverPage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      circle at 25% 25%,
+      rgba(197, 179, 88, 0.12) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 75% 75%,
+      rgba(197, 179, 88, 0.08) 0%,
+      transparent 50%
+    );
+  pointer-events: none;
+}
+
+.coverTitle {
+  font-family: var(--font-title);
+  font-size: clamp(1.4rem, 5vw, 2.4rem);
+  font-weight: 700;
+  color: var(--antique-gold);
+  text-shadow: 0 2px 16px rgba(197, 179, 88, 0.35);
+  z-index: 1;
+  line-height: 1.3;
+}
+
+.coverDecoration {
+  margin: 12px auto;
+  width: 50px;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--antique-gold),
+    transparent
+  );
+  z-index: 1;
+}
+
+.coverSubtitle {
+  font-family: var(--font-child);
+  font-size: clamp(0.7rem, 2vw, 1rem);
+  color: rgba(255, 255, 255, 0.5);
+  z-index: 1;
+}
+
+/* === 스토리 카드 (모바일 카드 뷰) === */
+.storyCard {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  animation: mobileFadeIn 0.3s ease-out;
+}
+
+/* 이미지 영역 (상단) */
+.imgSection {
+  flex: 1.1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+  overflow: hidden;
+  position: relative;
+  min-height: 0;
+}
+
+.imgSection img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  padding: 8px;
+}
+
+/* 텍스트 영역 (하단) */
+.textSection {
+  flex: 0.9;
+  background: var(--paper-cream);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 16px 20px 12px;
+  overflow-y: auto;
+  position: relative;
+  min-height: 0;
+}
+
+.textSection::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 28px,
+    rgba(178, 172, 136, 0.06) 28px,
+    rgba(178, 172, 136, 0.06) 29px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.storyChapter {
+  font-family: var(--font-title);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--antique-gold);
+  opacity: 0.7;
+  margin-bottom: 4px;
+  position: relative;
+  z-index: 1;
+}
+
+.storyTitle {
+  font-family: var(--font-child);
+  font-size: calc(clamp(1rem, 3.5vw, 1.5rem) * var(--font-size-adjust));
+  font-weight: 700;
+  color: var(--dark-slate);
+  line-height: 1.3;
+  margin-bottom: 6px;
+  position: relative;
+  z-index: 1;
+}
+
+.storyDivider {
+  width: 36px;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--antique-gold),
+    rgba(197, 179, 88, 0.3)
+  );
+  border-radius: 2px;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.storyBody {
+  font-family: var(--font-child);
+  font-size: calc(clamp(0.85rem, 2.5vw, 1.1rem) * var(--font-size-adjust));
+  line-height: 1.85;
+  color: var(--text-story);
+  word-break: keep-all;
+  position: relative;
+  z-index: 1;
+}
+
+.sentence {
+  display: block;
+  padding: 2px 4px;
+  margin-bottom: 2px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.sentence.active {
+  background-color: rgba(197, 179, 88, 0.2);
+  color: var(--dark-slate);
+  font-weight: 700;
+}
+
+.sentence.read {
+  opacity: 0.55;
+}
+
+.pageNumber {
+  text-align: right;
+  font-family: var(--font-title);
+  font-size: 0.6rem;
+  color: var(--sage-green);
+  letter-spacing: 3px;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(178, 172, 136, 0.2);
+  position: relative;
+  z-index: 1;
+}
+
+/* === 하단 네비게이션 === */
+.bottomNav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px 20px 10px;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(197, 179, 88, 0.18);
+  z-index: 120;
+}
+
+.navBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 80px;
+  min-height: var(--touch-min);
+  padding: 0 20px;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  font-family: var(--font-child);
+  font-size: 0.95rem;
+  font-weight: 700;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.navBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.navBtnPrev {
+  background: linear-gradient(135deg, #ff9a56 0%, #ff6f3c 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(255, 111, 60, 0.35);
+}
+
+.navBtnPrev:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(255, 111, 60, 0.5);
+}
+
+.navBtnNext {
+  background: linear-gradient(135deg, #56c1ff 0%, #3c8dff 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(60, 141, 255, 0.35);
+}
+
+.navBtnNext:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(60, 141, 255, 0.5);
+}
+
+.navBtn:active:not(:disabled) {
+  transform: scale(0.9) !important;
+  animation: btn-bounce 0.4s ease;
+}
+
+.pageIndicator {
+  font-family: var(--font-child);
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 700;
+  min-width: 80px;
+  text-align: center;
+  letter-spacing: 2px;
+}
+
+/* === 반응형 === */
+@media (max-width: 768px) {
+  .topBar {
+    padding: 4px 10px;
+    min-height: 34px;
+  }
+
+  .topBarTitle h1 {
+    font-size: 0.85rem;
+  }
+
+  .bookArea {
+    padding: 4px 4px 78px;
+  }
+
+  .bottomNav {
+    gap: 12px;
+    padding: 6px 12px 8px;
+  }
+
+  .navBtn {
+    min-width: 80px;
+    min-height: 50px;
+    padding: 0 20px;
+    font-size: 0.9rem;
+  }
+
+  .storyCard {
+    border-radius: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .topBar {
+    padding: 3px 8px;
+    min-height: 30px;
+  }
+
+  .topBarTitle h1 {
+    font-size: 0.78rem;
+  }
+
+  .bookArea {
+    padding: 2px 2px 72px;
+  }
+
+  .bottomNav {
+    gap: 10px;
+    padding: 5px 10px 7px;
+  }
+
+  .navBtn {
+    min-width: 72px;
+    min-height: 46px;
+    padding: 0 16px;
+    font-size: 0.85rem;
+    border-radius: 24px;
+  }
+
+  .pageIndicator {
+    font-size: 0.82rem;
+    min-width: 60px;
+  }
+
+  .imgSection {
+    flex: 1;
+  }
+
+  .textSection {
+    flex: 1;
+    padding: 12px 14px 8px;
+  }
+
+  .storyChapter {
+    font-size: 0.55rem;
+    letter-spacing: 2px;
+    margin-bottom: 2px;
+  }
+
+  .storyTitle {
+    font-size: clamp(0.9rem, 3vw, 1.2rem);
+    margin-bottom: 4px;
+  }
+
+  .storyDivider {
+    width: 28px;
+    height: 2px;
+    margin-bottom: 8px;
+  }
+
+  .storyBody {
+    font-size: clamp(0.78rem, 2.2vw, 0.95rem);
+    line-height: 1.7;
+  }
+
+  .pageNumber {
+    font-size: 0.5rem;
+    margin-top: 6px;
+    padding-top: 4px;
+  }
+
+  .coverTitle {
+    font-size: clamp(1.2rem, 4vw, 2rem);
+  }
+
+  .coverSubtitle {
+    font-size: clamp(0.6rem, 1.8vw, 0.85rem);
+  }
+
+  .storyCard {
+    border-radius: 6px;
+  }
+}
+
+@media (max-width: 360px) {
+  .topBar {
+    padding: 2px 6px;
+    min-height: 26px;
+  }
+
+  .topBarTitle h1 {
+    font-size: 0.68rem;
+  }
+
+  .bottomNav {
+    padding: 4px 6px 5px;
+    gap: 8px;
+  }
+
+  .navBtn {
+    min-width: 62px;
+    min-height: 42px;
+    padding: 0 12px;
+    font-size: 0.75rem;
+  }
+
+  .textSection {
+    padding: 8px 10px 6px;
+  }
+
+  .storyTitle {
+    font-size: 0.85rem;
+  }
+
+  .storyBody {
+    font-size: 0.72rem;
+    line-height: 1.6;
+  }
+
+  .storyChapter {
+    font-size: 0.45rem;
+  }
+}
+
+/* === 자동 넘김 버튼 (프롬프트 9) === */
+.navBtnAuto {
+  background: linear-gradient(135deg, #a56eff 0%, #7c3aed 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+  min-width: 80px;
+  padding: 0 14px;
+  font-size: 0.85rem;
+}
+
+.navBtnAuto:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
+}
+
+.navBtnAutoActive {
+  background: linear-gradient(135deg, #ff6b6b 0%, #e53e3e 100%);
+  box-shadow: 0 4px 14px rgba(229, 62, 62, 0.35);
+  animation: pulse-auto 1.5s infinite;
+}
+
+.navBtnAutoActive:hover {
+  box-shadow: 0 6px 20px rgba(229, 62, 62, 0.55);
+}
+
+.navBtnSpeed {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  min-width: 50px;
+  padding: 0 10px;
+  font-size: 0.75rem;
+}
+
+.navBtnSpeed:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* === 이어읽기 토스트 (프롬프트 10) === */
+.resumeToast {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #2f4f4f, #1a3333);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(197, 179, 88, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-child);
+  font-size: 0.85rem;
+  animation: slideDown 0.35s ease-out;
+}
+
+.resumeToastBtn {
+  background: var(--antique-gold);
+  color: #1a1a2e;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-family: var(--font-child);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.2s ease;
+}
+
+.resumeToastBtn:hover {
+  transform: scale(1.05);
+}
+
+.resumeToastClose {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+/* === 처음으로 버튼 (프롬프트 10) === */
+.restartBtn {
+  margin-top: 24px;
+  background: linear-gradient(135deg, #ffd86e 0%, #f5a623 100%);
+  color: #1a1a2e;
+  border: none;
+  border-radius: 30px;
+  padding: 10px 24px;
+  font-family: var(--font-child);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  z-index: 1;
+  box-shadow: 0 4px 14px rgba(245, 166, 35, 0.35);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.restartBtn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(245, 166, 35, 0.5);
+}

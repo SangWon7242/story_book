@@ -1,0 +1,184 @@
+@import "tailwindcss";
+
+/* ============================================
+   비프의 푸른 바다 모험 - Next.js Global Styles
+   CSS 변수(디자인 토큰) + 전역 리셋
+   ============================================ */
+
+/* === CSS 변수 (디자인 토큰) — 라이트모드(기본) === */
+:root {
+  --paper-cream: #fdf8ec;
+  --paper-warm: #faf5e4;
+  --sage-green: #b2ac88;
+  --antique-gold: #c5b358;
+  --dark-slate: #2f4f4f;
+  --bg-dark: #1b1b2f;
+  --bg-card: #232340;
+  --font-child: "Jua", "Nanum Gothic", sans-serif;
+  --font-title: "Playfair Display", serif;
+  --touch-min: 54px;
+  --text-story: #3a3a3a;
+  --bg-gradient-start: #1b1b2f;
+  --bg-gradient-mid: #162447;
+  --bg-gradient-end: #1f4068;
+  --font-size-adjust: 1;
+}
+
+/* === 다크모드 변수 오버라이드 === */
+[data-theme="dark"] {
+  --paper-cream: #1e1e2e;
+  --paper-warm: #232336;
+  --dark-slate: #e0dcc8;
+  --text-story: #d4d0c0;
+  --bg-dark: #0e0e1a;
+  --bg-card: #1a1a2e;
+  --bg-gradient-start: #0e0e1a;
+  --bg-gradient-mid: #0f1a30;
+  --bg-gradient-end: #142040;
+}
+
+/* === 초기화 === */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  overflow: hidden !important;
+}
+
+body {
+  height: 100%;
+  overflow: hidden !important;
+  font-family: var(--font-child);
+  background-color: var(--bg-dark);
+  color: var(--dark-slate);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* === 접근성: 스크린리더 전용 === */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* === 접근성: 키보드 포커스 표시 === */
+*:focus-visible {
+  outline: 3px solid var(--antique-gold);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* === 접근성: 저사양 모션 환경 === */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* === 애니메이션 === */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 6px 20px rgba(0, 0, 0, 0.35),
+      0 0 0 0 rgba(197, 179, 88, 0.35);
+  }
+  50% {
+    box-shadow:
+      0 6px 20px rgba(0, 0, 0, 0.35),
+      0 0 0 8px rgba(197, 179, 88, 0);
+  }
+}
+
+@keyframes btn-bounce {
+  0% {
+    transform: scale(0.9);
+  }
+  40% {
+    transform: scale(1.1);
+  }
+  60% {
+    transform: scale(0.97);
+  }
+  80% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes mobileFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes libFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse-auto {
+  0%,
+  100% {
+    box-shadow:
+      0 4px 14px rgba(0, 0, 0, 0.25),
+      0 0 0 0 rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 4px 14px rgba(0, 0, 0, 0.25),
+      0 0 0 8px rgba(255, 255, 255, 0);
+  }
+}

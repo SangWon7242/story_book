@@ -1,133 +1,159 @@
 ---
 name: storybook-page-management
-description: 동화책 스토리 페이지를 추가, 수정, 삭제할 때 따라야 할 규칙과 구조를 정의합니다.
+description: Next.js 환경에서 동화책 스토리 페이지를 추가, 수정, 삭제할 때 따라야 할 규칙과 구조를 정의합니다.
 ---
 
-# 📖 Storybook Page Management Skill
+# 📖 Storybook Page Management Skill (Next.js)
 
 ## 개요
 
-이 스킬은 AI 인터랙티브 동화책의 **스토리 페이지를 관리**(추가/수정/삭제)할 때 일관성을 유지하기 위한 가이드라인입니다.
+이 스킬은 Next.js App Router 환경의 AI 인터랙티브 동화책에서 **스토리 페이지를 관리**(추가/수정/삭제)할 때 일관성을 유지하기 위한 가이드라인입니다.
 
 ## 프로젝트 파일 구조
 
 ```
-story_book/
-├── index.html          # 메인 HTML (모든 스토리 페이지 포함)
-├── css/style.css       # 전체 스타일시트
-├── js/main.js          # 메인 로직 (StPageFlip, Audio Player)
-├── images/             # 삽화 이미지 (1.png, 2.png, ...)
-└── audio/              # 구연동화 오디오 파일
+src/
+├── app/
+│   ├── layout.tsx              # 루트 레이아웃
+│   ├── page.tsx                # 홈 페이지 (스토리 로드)
+│   ├── globals.css             # 전역 CSS 변수 + 리셋
+│   └── api/story/story1/
+│       └── route.ts            # 스토리 데이터 API
+├── components/
+│   ├── BookViewer/
+│   │   ├── StoryViewer.tsx     # 메인 뷰어
+│   │   ├── DesktopBook.tsx     # 데스크톱 PageFlip
+│   │   └── *.module.css
+│   ├── AudioPlayer/
+│   │   └── AudioPlayer.tsx     # 오디오 컨트롤
+│   └── TopBar/
+│       └── TopBar.tsx          # 상단 바 + 설정
+├── hooks/
+│   ├── useAudioPlayer.ts
+│   ├── useResponsive.ts
+│   └── useReadingProgress.ts
+├── types/
+│   ├── story.ts                # StoryData 타입
+│   └── page-flip.d.ts
+└── data/stories/
+    └── story1.json             # 스토리 데이터
+public/
+├── images/                     # 삽화 이미지 (1.png ~ N.png)
+└── audio/                      # 챕터별 오디오 (chapter1.mp3 ~ chapterN.mp3)
 ```
 
-## 페이지 구조 규칙
+## 스토리 데이터 구조 (JSON)
 
-### 1. 페이지 쌍(Pair) 원칙
+### TypeScript 타입 (`src/types/story.ts`)
 
-각 스토리는 반드시 **2개의 페이지 쌍**으로 구성됩니다:
-
-- **왼쪽 페이지 (일러스트레이션)**: `page page-illustration`
-- **오른쪽 페이지 (텍스트)**: `page page-story`
-
-```html
-<!-- ===== Story N - Image (Left) ===== -->
-<div class="page page-illustration">
-  <div class="illustration-wrap">
-    <img src="images/N.png" alt="장면 설명" />
-  </div>
-</div>
-
-<!-- ===== Story N - Text (Right) ===== -->
-<div class="page page-story">
-  <div class="story-wrap">
-    <div class="story-chapter">Chapter N</div>
-    <h3 class="story-title">챕터 제목</h3>
-    <div class="story-divider"></div>
-    <p class="story-body">
-      <span class="sentence" data-sentence="1">첫 번째 문장.</span>
-      <span class="sentence" data-sentence="2">두 번째 문장.</span>
-      <!-- 문장 추가... -->
-    </p>
-    <div class="story-page-number">N / TOTAL</div>
-  </div>
-</div>
+```typescript
+export interface Sentence {
+  text: string;
+}
+export interface Chapter {
+  chapterNum: number;
+  title: string;
+  image: string; // "images/1.png"
+  imageAlt: string;
+  audio: string; // "audio/chapter1.mp3"
+  sentences: Sentence[];
+}
+export interface StoryData {
+  title: string;
+  subtitle: string;
+  chapters: Chapter[];
+}
 ```
 
-### 2. 전체 페이지 순서
+### JSON 예시 (`src/data/stories/story1.json`)
 
-```
-[Front Cover (data-density="hard")]
-[Story 1 - Image] [Story 1 - Text]
-[Story 2 - Image] [Story 2 - Text]
-...
-[Story N - Image] [Story N - Text]
-[Back Cover (data-density="hard")]
-```
-
-### 3. 커버 페이지 템플릿
-
-```html
-<!-- Front Cover -->
-<div class="page page-cover" data-density="hard">
-  <div class="cover-title">동화 제목</div>
-  <div class="cover-decoration"></div>
-  <div class="cover-subtitle">부제목</div>
-</div>
-
-<!-- Back Cover -->
-<div class="page page-cover" data-density="hard">
-  <div class="cover-title">끝 ✨</div>
-  <div class="cover-decoration"></div>
-  <div class="cover-subtitle">Powered by AI Vibe Coding</div>
-</div>
+```json
+{
+  "title": "비프의 푸른 바다 모험",
+  "subtitle": "화성에서 온 로봇, 비프의 신비로운 지구 탐험기",
+  "chapters": [
+    {
+      "chapterNum": 1,
+      "title": "안녕, 푸른 지구야!",
+      "image": "images/1.png",
+      "imageAlt": "비프가 푸른 지구의 바다에 도착한 장면",
+      "audio": "audio/chapter1.mp3",
+      "sentences": [{ "text": "첫 번째 문장." }, { "text": "두 번째 문장." }]
+    }
+  ]
+}
 ```
 
-## 페이지 추가 절차
+## 페이지 쌍(Pair) 원칙
 
-새 스토리 페이지를 추가할 때 다음 체크리스트를 따릅니다:
+데스크톱 PageFlip은 각 챕터를 **2개의 물리 페이지**로 표현합니다:
+
+```
+[앞표지] [Ch1 일러스트 | Ch1 텍스트] [Ch2 일러스트 | Ch2 텍스트] ... [뒷표지]
+```
+
+- 왼쪽 페이지: 일러스트 (`pageIllustration`)
+- 오른쪽 페이지: 텍스트 (`pageStory`)
+
+모바일에서는 한 장에 일러스트+텍스트가 모두 표시됩니다.
+
+## 챕터 추가 절차
 
 ### Step 1: 이미지 준비
 
-- [ ] `images/` 폴더에 새 이미지 파일 추가 (파일명: 번호.png)
-- [ ] 이미지 크기: 1024x1024px 이상 권장 (정사각형 또는 3:4 비율)
-- [ ] alt 텍스트에 장면 설명을 상세히 작성
+- [ ] `public/images/` 폴더에 새 이미지 추가 (파일명: `N.png`)
+- [ ] 이미지 크기: 1024×1024px 이상 (정사각형 또는 3:4 비율)
 
-### Step 2: HTML 페이지 쌍 삽입
+### Step 2: 오디오 준비
 
-- [ ] 마지막 스토리 페이지와 Back Cover 사이에 새 페이지 쌍 삽입
-- [ ] `data-sentence` 속성의 번호를 1부터 순서대로 부여
-- [ ] Chapter 번호, 페이지 번호 업데이트
+- [ ] `public/audio/` 폴더에 새 오디오 추가 (파일명: `chapterN.mp3`)
+- [ ] MP3 형식 권장
 
-### Step 3: 기존 페이지 번호 업데이트
+### Step 3: JSON 데이터 수정
 
-- [ ] 모든 기존 `.story-page-number` 의 총 페이지 수 업데이트 (예: `N / 5` → `N / 6`)
+`src/data/stories/story1.json`에 새 챕터 추가:
 
-### Step 4: JavaScript 상수 업데이트
-
-- [ ] `js/main.js` 파일의 `TOTAL_STORIES` 상수 값 변경
-
-```javascript
-// 총 스토리 수 (커버 제외, 이미지+텍스트 페이지 쌍의 수)
-const TOTAL_STORIES = 6; // 5 → 6 으로 변경
+```json
+{
+  "chapterNum": 7,
+  "title": "새 챕터 제목",
+  "image": "images/7.png",
+  "imageAlt": "새 챕터 장면 설명",
+  "audio": "audio/chapter7.mp3",
+  "sentences": [
+    { "text": "첫 번째 문장." },
+    { "text": "두 번째 문장." },
+    { "text": "세 번째 문장." }
+  ]
+}
 ```
+
+### Step 4: 확인
+
+- [ ] `npm run build` 성공 확인
+- [ ] 모바일 / 데스크톱 양쪽에서 새 챕터 표시 확인
+- [ ] 오디오 재생 확인
+- [ ] 페이지 인디케이터 총 수 자동 업데이트 확인
+
+## 챕터 삭제 절차
+
+1. `story1.json`에서 해당 챕터 객체 삭제
+2. `public/images/`에서 해당 이미지 삭제
+3. `public/audio/`에서 해당 오디오 삭제
+4. 남은 챕터들의 `chapterNum` 재정렬
+5. 빌드 확인
 
 ## 문장 작성 가이드라인
 
-- 한 문장은 30자 이내를 권장 (어린이 가독성)
-- 의성어/의태어를 적극 활용 (예: 쏴아아, 철컥철컥, 뽀글뽀글)
-- 한 페이지당 3~5개 문장이 적당
-- 각 문장은 `<span class="sentence" data-sentence="N">` 태그로 감싸기 (TTS 연동 대비)
-
-## 페이지 삭제 절차
-
-1. `index.html`에서 해당 스토리의 Image + Text 페이지 쌍 삭제
-2. `images/` 폴더에서 해당 이미지 파일 삭제
-3. 남은 페이지들의 Chapter 번호, 페이지 번호 재정렬
-4. `TOTAL_STORIES` 상수 값 업데이트
+- 한 문장: **15~30자** 권장
+- 한 챕터: **3~5개 문장**
+- 의성어/의태어 적극 활용
+- `story-content-generation` 스킬 참조
 
 ## 주의사항
 
-- ⚠️ 페이지는 반드시 **쌍(pair)** 단위로 추가/삭제해야 StPageFlip이 정상 동작합니다
-- ⚠️ `data-density="hard"` 속성은 **커버 페이지에만** 사용합니다
-- ⚠️ 이미지 파일명은 스토리 순서와 일치시킵니다 (1.png, 2.png, ...)
+- ⚠️ JSON만 수정하면 UI가 자동으로 업데이트됨 (HTML 수동 편집 필요 없음)
+- ⚠️ 이미지/오디오는 `public/` 폴더에 위치 (경로는 `/images/N.png`)
+- ⚠️ 챕터 수 변경 시 `totalPages` 계산이 자동 반영됨 (`chapters.length + 2`)
+- ⚠️ PageFlip 물리 페이지 수 = `chapters.length * 2 + 2` (앞뒤 표지 포함)
 - ⚠️ 모든 주석은 한글로 작성합니다
